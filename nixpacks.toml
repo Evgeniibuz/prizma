@@ -1,0 +1,23 @@
+# Nixpacks build configuration for Railway.
+# Forces Python 3.11 (the project pins fastapi/asyncpg versions that match it)
+# and pre-downloads TextBlob corpora at build time so the sentiment service
+# doesn't try to fetch them on first request.
+
+[phases.setup]
+nixPkgs = ["python311", "gcc", "postgresql"]
+
+[phases.install]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  ". /opt/venv/bin/activate && pip install --upgrade pip",
+  ". /opt/venv/bin/activate && pip install -r requirements.txt",
+  ". /opt/venv/bin/activate && python -m textblob.download_corpora || true"
+]
+
+[start]
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT --app-dir python"
+
+[variables]
+PYTHONDONTWRITEBYTECODE = "1"
+PYTHONUNBUFFERED = "1"
+PATH = "/opt/venv/bin:$PATH"

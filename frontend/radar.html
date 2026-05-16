@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PULSΞ — Radar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .app-radar{position:relative;z-index:10;width:100%;height:100dvh;height:-webkit-fill-available;display:grid;grid-template-columns:1fr 420px;grid-template-rows:56px 1fr;grid-template-areas:"tb tb" "rd pn";overflow:hidden}
+
+    /* ── Radar Zone ── */
+    .rd{grid-area:rd;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 50%,rgba(0,255,163,.03) 0%,transparent 50%)}
+    .radar-canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+    .radar-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 35%,rgba(0,0,0,.2) 65%,rgba(0,0,0,.55) 100%)}
+    .radar-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5}
+    .radar-center-ring{width:90px;height:90px;border:2px solid rgba(0,255,163,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;position:relative;box-shadow:0 0 30px rgba(0,255,163,.1),inset 0 0 30px rgba(0,255,163,.05)}
+    .radar-center-ring::before{content:'';position:absolute;width:130%;height:130%;border-radius:50%;border:1.5px solid rgba(0,255,163,.2);animation:rcPulse 2.5s ease infinite}
+    .radar-center-ring::after{content:'';position:absolute;width:170%;height:170%;border-radius:50%;border:1px solid rgba(0,255,163,.1);animation:rcPulse 2.5s ease .4s infinite}
+    .radar-center-dot{width:16px;height:16px;border-radius:50%;background:var(--g);box-shadow:0 0 30px var(--g),0 0 80px rgba(0,255,163,.5),0 0 120px rgba(0,255,163,.2);animation:centerBreathe 2s ease-in-out infinite}
+    @keyframes centerBreathe{0%,100%{box-shadow:0 0 30px var(--g),0 0 80px rgba(0,255,163,.5),0 0 120px rgba(0,255,163,.2)}50%{box-shadow:0 0 40px var(--g),0 0 100px rgba(0,255,163,.6),0 0 160px rgba(0,255,163,.3)}}
+    .radar-label{font-family:var(--fm);font-size:9px;letter-spacing:4px;color:rgba(0,255,163,.7);text-transform:uppercase;text-shadow:0 0 10px rgba(0,255,163,.3)}
+    .radar-stats{position:absolute;bottom:20px;left:20px;z-index:5;display:flex;gap:24px}
+    .rstat{font-family:var(--fm)}.rstat-l{font-size:7px;letter-spacing:2px;color:var(--w45);text-transform:uppercase;margin-bottom:4px}.rstat-v{font-size:18px;color:#fff;font-weight:500;text-shadow:0 0 8px rgba(255,255,255,.1)}.rstat-c{font-size:9px;margin-top:2px}
+    .scan-line{position:absolute;bottom:20px;right:20px;z-index:5;display:flex;align-items:center;gap:8px}
+    .scan-dot{width:8px;height:8px;border-radius:50%;background:var(--g);animation:bk 1.2s ease infinite;box-shadow:0 0 12px var(--g)}
+    .scan-txt{font-family:var(--fm);font-size:9px;letter-spacing:3px;color:var(--g);text-transform:uppercase;text-shadow:0 0 8px rgba(0,255,163,.3)}
+
+    /* ── Signal tooltip on hover ── */
+    .sig-tip{position:absolute;z-index:20;pointer-events:none;padding:12px 16px;background:rgba(8,8,14,.95);border:1px solid var(--w12);border-radius:2px;backdrop-filter:blur(20px);min-width:200px;display:none;transition:opacity .2s}
+    .sig-tip.show{display:block;animation:fI .2s ease}
+    .sig-tip-sym{font-size:14px;font-weight:600;color:var(--g);letter-spacing:2px;margin-bottom:4px}
+    .sig-tip-name{font-size:9px;color:var(--w20);letter-spacing:1px;margin-bottom:8px}
+    .sig-tip-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px}.sig-tip-k{color:var(--w20)}.sig-tip-v{color:var(--w70)}
+    .sig-tip-score{margin-top:8px;padding-top:8px;border-top:1px solid var(--w8);display:flex;align-items:center;justify-content:space-between}
+    .sig-tip-score-l{font-size:8px;letter-spacing:2px;color:var(--w20);text-transform:uppercase}
+    .sig-tip-score-v{font-size:16px;font-weight:600}
+
+    /* ── Panel ── */
+    .pn{grid-area:pn;border-left:1px solid var(--w8);backdrop-filter:blur(30px);background:rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden}
+    .pn-tabs{display:flex;border-bottom:1px solid var(--w8)}.pn-tab{flex:1;padding:14px;font-family:var(--fm);font-size:8px;letter-spacing:2px;color:var(--w20);text-transform:uppercase;text-align:center;cursor:pointer;transition:all .2s;border:none;background:none;border-bottom:2px solid transparent}.pn-tab:hover{color:var(--w45)}.pn-tab.ac{color:var(--c);border-bottom-color:var(--c)}
+    .pn-body{flex:1;overflow-y:auto;padding:0}
+    .pn-section{display:none}.pn-section.ac{display:block}
+
+    /* ── Feed cards ── */
+    .feed{padding:12px}
+    .fc{padding:14px 16px;border:1px solid var(--w8);border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:8px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+    .fc:hover{border-color:var(--w20);background:rgba(0,0,0,.35)}
+    .fc::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:0 2px 2px 0}
+    .fc.hot::before{background:var(--g);box-shadow:0 0 12px rgba(0,255,163,.5)}
+    .fc.warm::before{background:var(--a);box-shadow:0 0 12px rgba(255,187,0,.5)}
+    .fc.cold::before{background:var(--c);box-shadow:0 0 12px rgba(0,212,255,.5)}
+    .fc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .fc-sym{font-size:14px;font-weight:600;letter-spacing:2px;display:flex;align-items:center;gap:8px}
+    .fc-sym .fc-name{font-size:9px;font-weight:400;color:var(--w20);letter-spacing:1px}
+    .fc-score{font-size:18px;font-weight:700;letter-spacing:1px}
+    .fc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .fc-tag{padding:2px 8px;border-radius:2px;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid}
+    .fc-tag.momentum{color:var(--c);border-color:rgba(0,212,255,.2);background:rgba(0,212,255,.05)}
+    .fc-tag.social{color:var(--a);border-color:rgba(255,187,0,.2);background:rgba(255,187,0,.05)}
+    .fc-tag.volume{color:var(--g);border-color:rgba(0,255,163,.2);background:rgba(0,255,163,.05)}
+    .fc-tag.kol{color:var(--b);border-color:rgba(100,120,255,.2);background:rgba(100,120,255,.05)}
+    .fc-tag.dev{color:#fff;border-color:var(--w12);background:var(--w4)}
+    .fc-desc{font-size:10px;color:var(--w45);line-height:1.6;margin-bottom:8px}
+    .fc-meta{display:flex;align-items:center;justify-content:space-between;font-size:8px;color:var(--w20);letter-spacing:1px;text-transform:uppercase}
+    .fc-price{color:var(--w70)}
+    .fc-bar{height:3px;background:var(--w6);border-radius:2px;margin-top:8px;overflow:hidden}.fc-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+    /* ── Filters ── */
+    .filters{padding:12px 16px;border-bottom:1px solid var(--w8);display:flex;gap:6px;flex-wrap:wrap}
+    .fbtn{padding:4px 10px;border:1px solid var(--w8);border-radius:2px;background:none;color:var(--w20);font-family:var(--fm);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s}.fbtn:hover{color:var(--w45);border-color:var(--w12)}.fbtn.ac{color:var(--g);border-color:rgba(0,255,163,.3);background:rgba(0,255,163,.05)}
+
+    /* ── History ── */
+    .hist-item{padding:12px 16px;border-bottom:1px solid var(--w4);transition:background .2s}.hist-item:hover{background:var(--w4)}
+    .hist-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+    .hist-sym{font-size:12px;font-weight:500;color:var(--g);letter-spacing:1px}
+    .hist-score{font-size:11px;font-weight:500}
+    .hist-desc{font-size:9px;color:var(--w20);line-height:1.5}
+    .hist-result{display:inline-block;padding:2px 6px;border-radius:2px;font-size:8px;letter-spacing:1px;margin-top:4px}
+    .hist-result.win{color:var(--g);background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.15)}
+    .hist-result.miss{color:var(--r);background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.15)}
+
+    @keyframes rcPulse{0%{transform:scale(1);opacity:.7}50%{transform:scale(1.4);opacity:0}100%{transform:scale(1);opacity:0}}
+
+    /* ── Mobile ── */
+    @media(max-width:1100px){.app-radar{grid-template-columns:1fr 340px!important}}
+    @media(max-width:768px){
+      .app-radar{grid-template-columns:1fr!important;grid-template-rows:50px 50vh 1fr!important;grid-template-areas:"tb" "rd" "pn"!important;height:auto!important;min-height:100dvh!important;overflow-y:auto!important}
+      .tb{padding:0 12px}
+      .tb-cr{display:none!important}
+      .tb-t{display:none!important}
+      .tb-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      .btn-n{font-size:8px;padding:0 10px;height:30px;letter-spacing:1px}
+      .pb{padding:4px 8px;gap:0;min-width:auto}
+      .pb span{display:none}
+      .pn{border-left:none!important;border-top:1px solid var(--w8)!important;min-height:50vh}
+      .radar-stats{bottom:10px;left:10px;gap:16px}.rstat-v{font-size:14px}
+      .scan-line{bottom:10px;right:10px}
+      .fc{padding:12px 14px}
+    }
+  </style>
+</head>
+<body>
+<div id="ubg" class="blur-sm"><div data-us-project="lvQHbwURkWLN3CcEaMHS" style="width:1440px;height:900px"></div></div>
+<div class="overlay"></div>
+<div class="app-radar">
+  <!-- Topbar -->
+  <header class="tb" style="grid-area:tb">
+    <div class="tb-l"><a class="tb-logo" href="dashboard">PULSΞ</a><div class="tb-cr">Dashboard / <span>Radar</span></div></div>
+    <div class="tb-r">
+      <div class="tb-t" id="clock"></div>
+      <div class="tb-t" id="userDisplay" style="margin-right:16px"></div>
+      <a class="btn btn-n" href="dashboard">Dashboard</a>
+      <a class="btn btn-n" href="https://x.com/theprizm_ai" target="_blank">Twitter</a>
+      <a class="btn btn-n" href="agents">Agents Lab</a>
+      <button class="btn btn-n" onclick="doLogout()" style="border-color:rgba(255,68,102,.3);color:var(--r)">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Radar Zone -->
+  <div class="rd" id="radarZone">
+    <canvas class="radar-canvas" id="radarCanvas"></canvas>
+    <div class="radar-overlay"></div>
+    <div class="radar-center">
+      <div class="radar-center-ring"><div class="radar-center-dot"></div></div>
+      <div class="radar-label">Scanning</div>
+    </div>
+    <div class="radar-stats">
+      <div class="rstat"><div class="rstat-l">Signals Active</div><div class="rstat-v" id="rSigCount">0</div></div>
+      <div class="rstat"><div class="rstat-l">Hot Alerts</div><div class="rstat-v" id="rHotCount" style="color:var(--g)">0</div></div>
+      <div class="rstat"><div class="rstat-l">Avg Score</div><div class="rstat-v" id="rAvgScore">—</div></div>
+    </div>
+    <div class="scan-line"><div class="scan-dot"></div><div class="scan-txt">Live Scan</div></div>
+    <div class="sig-tip" id="sigTip"></div>
+  </div>
+
+  <!-- Panel -->
+  <aside class="pn">
+    <div class="pn-tabs">
+      <button class="pn-tab ac" onclick="switchTab('live',this)">Live Feed</button>
+      <button class="pn-tab" onclick="switchTab('history',this)">History</button>
+    </div>
+    <div class="pn-body">
+      <div class="pn-section ac" id="sec-live">
+        <div class="filters">
+          <button class="fbtn ac" onclick="setFilter('all',this)">All</button>
+          <button class="fbtn" onclick="setFilter('hot',this)">🔥 Hot</button>
+          <button class="fbtn" onclick="setFilter('momentum',this)">⚡ Momentum</button>
+          <button class="fbtn" onclick="setFilter('social',this)">📢 Social</button>
+          <button class="fbtn" onclick="setFilter('volume',this)">📊 Volume</button>
+        </div>
+        <div class="feed" id="feedList"></div>
+      </div>
+      <div class="pn-section" id="sec-history">
+        <div id="histList"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script src="config.js?v=20260222_1"></script>
+<script src="api.js?v=20260222_1"></script>
+<script src="utils.js?v=20260222_1"></script>
+<script>
+initUnicorn();
+if (!requireAuth()) throw 'no auth';
+initProfile(); closeProfileOnClickOut(); startClock(document.getElementById('clock'));
+
+// Display username
+(() => {
+  const userEl = document.getElementById('userDisplay');
+  if (!userEl) return;
+  const username = (API.getUser()?.username) || '';
+  if (!username) return;
+  userEl.textContent = username;
+  userEl.style.color = 'var(--g)';
+})();
+
+// ═══════════════════════════════════════
+// RADAR ENGINE
+// ═══════════════════════════════════════
+
+const canvas = document.getElementById('radarCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy;
+let signals = [];
+let currentFilter = 'all';
+let animFrame;
+
+function resize() {
+  const r = canvas.parentElement.getBoundingClientRect();
+  canvas.width = r.width * devicePixelRatio;
+  canvas.height = r.height * devicePixelRatio;
+  canvas.style.width = r.width + 'px';
+  canvas.style.height = r.height + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  W = r.width; H = r.height; cx = W / 2; cy = H / 2;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Signal Generator ──
+const SIGNAL_TYPES = ['momentum', 'social', 'volume', 'kol', 'dev'];
+const SIGNAL_DESCS = {
+  momentum: [
+    'Strong upward momentum — +{p}% in {t}h with volume confirmation',
+    'Breakout above {t}-day resistance with {p}% follow-through',
+    'Accelerating uptrend — 1h change outpacing 24h average',
+    'Higher highs / higher lows pattern on {t}h timeframe'
+  ],
+  social: [
+    'Mention velocity +{p}% in last {t}h — organic growth pattern',
+    '$CASHTAG trending in {n} crypto communities',
+    'Sentiment shifted from neutral to bullish — {p}% positive',
+    'Viral thread from {n} KOLs — combined reach {v}M'
+  ],
+  volume: [
+    'DEX volume spike +{p}% vs 24h avg — unusual activity',
+    'Buy/sell ratio shifted to {p}% buy dominant',
+    'Spot volume outpacing perpetuals — organic demand',
+    'Volume breakout above {t}-day resistance with {p}% increase'
+  ],
+  kol: [
+    'Top-{n} KOL posted analysis — historically {p}% accurate',
+    '{n} verified accounts mentioned in last {t}h',
+    'Influencer with {v}M followers posted bullish take',
+    'KOL consensus forming — {n}/{t} bullish'
+  ],
+  dev: [
+    'GitHub commits +{p}% this week — active development',
+    '{n} new contributors joined repo in {t} days',
+    'Major protocol upgrade announced — TVL expected to increase',
+    'Audit completed by top firm — security score {p}/100'
+  ]
+};
+
+const COLOR_MAP = {
+  momentum: { r: 0, g: 220, b: 255 },
+  social: { r: 255, g: 200, b: 0 },
+  volume: { r: 0, g: 255, b: 170 },
+  kol: { r: 120, g: 140, b: 255 },
+  dev: { r: 255, g: 255, b: 255 }
+};
+
+let md = [];
+
+async function loadMarket() {
+  md = await API.market() || MOCK_MARKET;
+  generateSignals();
+}
+
+async function loadRadarSignals() {
+  const d = await API.radarSignals(90);
+  if (d && Array.isArray(d.signals) && d.signals.length) {
+    applyBackendSignals(d.signals);
+    return true;
+  }
+  return false;
+}
+
+function applyBackendSignals(items) {
+  signals = [];
+  const maxR = Math.min(W, H) * 0.42;
+  const pool = items.slice(0, 120);
+  pool.forEach((it, idx) => {
+    const score = Math.max(50, Math.min(100, Number(it.score) || 50));
+    const heat = score >= 85 ? 'hot' : score >= 70 ? 'warm' : 'cold';
+    const types = Array.isArray(it.types) && it.types.length ? it.types : [it.type || 'volume'];
+    const type = it.type || types[0] || 'volume';
+
+    // Position on radar — higher score = closer to center
+    const dist = maxR * (1 - (score - 50) / 60);
+    const angle = (idx * 0.61803398875 + Math.random() * 0.2) * Math.PI * 2;
+    const targetX = cx + Math.cos(angle) * dist;
+    const targetY = cy + Math.sin(angle) * dist;
+
+    // Start from edge
+    const startAngle = Math.random() * Math.PI * 2;
+    const startDist = maxR * 1.2;
+
+    const sv = (it.meta && typeof it.meta.social_velocity === 'number') ? it.meta.social_velocity : 0;
+    const desc = sv > 0 ? `mention velocity +${Math.round(sv)}%` : `${type.toUpperCase()} trigger`;
+
+    signals.push({
+      id: idx + 1,
+      coin: { id: it.coin_id, symbol: it.symbol, name: it.name },
+      symbol: String(it.symbol || '').toUpperCase(),
+      name: it.name,
+      type,
+      types,
+      score,
+      heat,
+      desc,
+      price: it.price,
+      change: it.change,
+      // Animation state
+      x: cx + Math.cos(startAngle) * startDist,
+      y: cy + Math.sin(startAngle) * startDist,
+      tx: targetX,
+      ty: targetY,
+      progress: 0,
+      speed: 0.003 + Math.random() * 0.005,
+      size: 4 + (score - 55) / 8,
+      pulse: Math.random() * Math.PI * 2,
+      trail: [],
+      arrived: false,
+      time: 'live'
+    });
+  });
+
+  signals.sort((a, b) => b.score - a.score);
+  updateStats();
+  renderFeed();
+  renderHistory();
+}
+
+function generateSignals() {
+  signals = [];
+  const pool = [...md].sort(() => Math.random() - 0.5);
+
+  pool.forEach((coin, i) => {
+    const numSigs = Math.floor(Math.random() * 3) + 1;
+    for (let j = 0; j < numSigs; j++) {
+      const type = SIGNAL_TYPES[Math.floor(Math.random() * SIGNAL_TYPES.length)];
+      const score = Math.floor(Math.random() * 45) + 55; // 55-100
+      const heat = score >= 85 ? 'hot' : score >= 70 ? 'warm' : 'cold';
+
+      // Position on radar — higher score = closer to center
+      const maxR = Math.min(W, H) * 0.42;
+      const dist = maxR * (1 - (score - 50) / 60); // score 100 = near center
+      const angle = Math.random() * Math.PI * 2;
+      const targetX = cx + Math.cos(angle) * dist;
+      const targetY = cy + Math.sin(angle) * dist;
+
+      // Start from edge
+      const startAngle = Math.random() * Math.PI * 2;
+      const startDist = maxR * 1.2;
+
+      const descs = SIGNAL_DESCS[type];
+      const desc = descs[Math.floor(Math.random() * descs.length)]
+        .replace('{n}', Math.floor(Math.random() * 8 + 2))
+        .replace('{v}', (Math.random() * 50 + 1).toFixed(1))
+        .replace('{p}', Math.floor(Math.random() * 400 + 50))
+        .replace('{t}', Math.floor(Math.random() * 24 + 1));
+
+      signals.push({
+        id: i * 10 + j,
+        coin,
+        symbol: coin.symbol.toUpperCase(),
+        name: coin.name,
+        type,
+        types: [type, ...(Math.random() > 0.5 ? [SIGNAL_TYPES[Math.floor(Math.random() * SIGNAL_TYPES.length)]] : [])],
+        score,
+        heat,
+        desc,
+        price: coin.current_price,
+        change: coin.price_change_percentage_24h_in_currency,
+        // Animation state
+        x: cx + Math.cos(startAngle) * startDist,
+        y: cy + Math.sin(startAngle) * startDist,
+        tx: targetX,
+        ty: targetY,
+        progress: 0,
+        speed: 0.003 + Math.random() * 0.005,
+        size: 4 + (score - 55) / 8,
+        pulse: Math.random() * Math.PI * 2,
+        trail: [],
+        arrived: false,
+        time: Math.floor(Math.random() * 180) + 1 + 'm ago'
+      });
+    }
+  });
+
+  signals.sort((a, b) => b.score - a.score);
+  updateStats();
+  renderFeed();
+  renderHistory();
+}
+
+// ── Radar Rendering ──
+let sweepAngle = 0;
+
+function drawRadar() {
+  ctx.clearRect(0, 0, W, H);
+
+  const maxR = Math.min(W, H) * 0.42;
+  const t = performance.now() / 1000;
+
+  // Ambient center glow
+  const ambG = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR * 0.6);
+  ambG.addColorStop(0, 'rgba(0, 255, 163, 0.04)');
+  ambG.addColorStop(0.5, 'rgba(0, 255, 163, 0.015)');
+  ambG.addColorStop(1, 'transparent');
+  ctx.fillStyle = ambG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Background grid rings — BRIGHTER
+  for (let i = 1; i <= 5; i++) {
+    const r = maxR * (i / 5);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    const pulse = 0.06 + Math.sin(t * 0.3 + i) * 0.02;
+    ctx.strokeStyle = `rgba(0, 255, 163, ${pulse + i * 0.02})`;
+    ctx.lineWidth = i === 5 ? 1.5 : 0.8;
+    ctx.stroke();
+  }
+
+  // Ring labels
+  ctx.font = '400 7px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(0, 255, 163, 0.2)';
+  ctx.textAlign = 'left';
+  ['100','80','60','40'].forEach((label, i) => {
+    ctx.fillText(label, cx + maxR * ((i+1) / 5) + 4, cy - 4);
+  });
+
+  // Cross lines — BRIGHTER
+  ctx.strokeStyle = 'rgba(0, 255, 163, 0.08)';
+  ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.moveTo(cx - maxR, cy); ctx.lineTo(cx + maxR, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - maxR); ctx.lineTo(cx, cy + maxR); ctx.stroke();
+  const d = maxR * 0.707;
+  ctx.strokeStyle = 'rgba(0, 255, 163, 0.05)';
+  ctx.beginPath(); ctx.moveTo(cx - d, cy - d); ctx.lineTo(cx + d, cy + d); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + d, cy - d); ctx.lineTo(cx - d, cy + d); ctx.stroke();
+
+  // Extra: tick marks on rings
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) {
+    for (let i = 1; i <= 5; i++) {
+      const r = maxR * (i / 5);
+      const tx1 = cx + Math.cos(a) * (r - 3);
+      const ty1 = cy + Math.sin(a) * (r - 3);
+      const tx2 = cx + Math.cos(a) * (r + 3);
+      const ty2 = cy + Math.sin(a) * (r + 3);
+      ctx.beginPath(); ctx.moveTo(tx1, ty1); ctx.lineTo(tx2, ty2);
+      ctx.strokeStyle = 'rgba(0, 255, 163, 0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+  }
+
+  // Sweep line — BRIGHTER, WIDER
+  sweepAngle += 0.01;
+  const sx = cx + Math.cos(sweepAngle) * maxR;
+  const sy = cy + Math.sin(sweepAngle) * maxR;
+  const grad = ctx.createLinearGradient(cx, cy, sx, sy);
+  grad.addColorStop(0, 'rgba(0, 255, 163, 0.5)');
+  grad.addColorStop(0.5, 'rgba(0, 255, 163, 0.2)');
+  grad.addColorStop(1, 'rgba(0, 255, 163, 0)');
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sx, sy); ctx.strokeStyle = grad; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // Sweep cone — BRIGHTER, WIDER
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, maxR, sweepAngle - 0.6, sweepAngle);
+  ctx.closePath();
+  const coneGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+  coneGrad.addColorStop(0, 'rgba(0, 255, 163, 0.14)');
+  coneGrad.addColorStop(0.4, 'rgba(0, 255, 163, 0.06)');
+  coneGrad.addColorStop(1, 'rgba(0, 255, 163, 0)');
+  ctx.fillStyle = coneGrad;
+  ctx.fill();
+
+  // Secondary faint sweep (opposite)
+  const sx2 = cx + Math.cos(sweepAngle + Math.PI) * maxR * 0.7;
+  const sy2 = cy + Math.sin(sweepAngle + Math.PI) * maxR * 0.7;
+  const grad2 = ctx.createLinearGradient(cx, cy, sx2, sy2);
+  grad2.addColorStop(0, 'rgba(0, 212, 255, 0.12)');
+  grad2.addColorStop(1, 'rgba(0, 212, 255, 0)');
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sx2, sy2); ctx.strokeStyle = grad2; ctx.lineWidth = 1; ctx.stroke();
+
+  // Particles — random sparkle
+  for (let p = 0; p < 8; p++) {
+    const pa = Math.sin(t * 2 + p * 47) * Math.PI * 2;
+    const pr = maxR * (0.15 + Math.abs(Math.sin(t * 0.5 + p * 13)) * 0.7);
+    const px = cx + Math.cos(pa) * pr;
+    const py = cy + Math.sin(pa) * pr;
+    const ps = 0.5 + Math.sin(t * 3 + p * 7) * 0.5;
+    ctx.beginPath();
+    ctx.arc(px, py, 1, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0, 255, 163, ${0.15 + ps * 0.25})`;
+    ctx.fill();
+  }
+
+  // ── Signals ──
+  signals.forEach(s => {
+    // Animate toward target
+    if (s.progress < 1) {
+      s.progress += s.speed;
+      if (s.progress > 1) { s.progress = 1; s.arrived = true; }
+      const ease = 1 - Math.pow(1 - s.progress, 3); // easeOutCubic
+      s.x = s.x + (s.tx - s.x) * 0.02;
+      s.y = s.y + (s.ty - s.y) * 0.02;
+    } else {
+      // Gentle float after arriving
+      s.x = s.tx + Math.sin(t * 0.8 + s.id) * 5;
+      s.y = s.ty + Math.cos(t * 1.1 + s.id) * 5;
+    }
+
+    // Trail — BRIGHTER
+    s.trail.push({ x: s.x, y: s.y, a: 1 });
+    if (s.trail.length > 16) s.trail.shift();
+    const col = COLOR_MAP[s.type];
+
+    // Draw trail
+    s.trail.forEach((p, i) => {
+      p.a *= 0.82;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, s.size * 0.5 * p.a, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${col.r},${col.g},${col.b},${p.a * 0.5})`;
+      ctx.fill();
+    });
+
+    // Draw outer glow — MUCH BRIGHTER
+    const pulseSize = s.size + Math.sin(t * 2.5 + s.pulse) * 2;
+    const glowR = pulseSize * 5;
+    const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+    glow.addColorStop(0, `rgba(${col.r},${col.g},${col.b},0.35)`);
+    glow.addColorStop(0.3, `rgba(${col.r},${col.g},${col.b},0.1)`);
+    glow.addColorStop(1, `rgba(${col.r},${col.g},${col.b},0)`);
+    ctx.beginPath(); ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2); ctx.fillStyle = glow; ctx.fill();
+
+    // Hot signals get a pulsing ring
+    if (s.score >= 85) {
+      const ringR = pulseSize * 2.5 + Math.sin(t * 3 + s.id) * 4;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${col.r},${col.g},${col.b},${0.12 + Math.sin(t * 3 + s.id) * 0.08})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Draw dot — FULL BRIGHTNESS
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pulseSize, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${col.r},${col.g},${col.b},1)`;
+    ctx.fill();
+    // Inner bright core
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pulseSize * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,0.4)`;
+    ctx.fill();
+
+    // Label for high-score signals — BRIGHTER
+    if (s.score >= 75 && s.arrived) {
+      ctx.font = '600 10px "IBM Plex Mono"';
+      ctx.fillStyle = `rgba(${col.r},${col.g},${col.b},0.9)`;
+      ctx.textAlign = 'center';
+      ctx.fillText('$' + s.symbol, s.x, s.y - pulseSize - 8);
+      ctx.font = '500 8px "IBM Plex Mono"';
+      ctx.fillStyle = `rgba(255,255,255,0.5)`;
+      ctx.fillText(s.score, s.x, s.y + pulseSize + 12);
+    }
+  });
+
+  animFrame = requestAnimationFrame(drawRadar);
+}
+
+// ── Hover detection ──
+const tip = document.getElementById('sigTip');
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  let found = null;
+  for (const s of signals) {
+    const dx = s.x - mx, dy = s.y - my;
+    if (Math.sqrt(dx * dx + dy * dy) < s.size + 10) { found = s; break; }
+  }
+  if (found) {
+    const sc = found.score >= 85 ? 'var(--g)' : found.score >= 70 ? 'var(--a)' : 'var(--c)';
+    tip.innerHTML = `<div class="sig-tip-sym">$${found.symbol} <span class="sig-tip-name">${found.name}</span></div>
+      <div class="sig-tip-row"><span class="sig-tip-k">Price</span><span class="sig-tip-v">${fmt(found.price)}</span></div>
+      <div class="sig-tip-row"><span class="sig-tip-k">24h</span><span class="sig-tip-v" style="color:${pc(found.change)}">${pct(found.change)}</span></div>
+      <div class="sig-tip-row"><span class="sig-tip-k">Trigger</span><span class="sig-tip-v">${found.type.toUpperCase()}</span></div>
+      <div class="sig-tip-score"><span class="sig-tip-score-l">Radar Score</span><span class="sig-tip-score-v" style="color:${sc}">${found.score}</span></div>`;
+    tip.className = 'sig-tip show';
+    let tx = e.clientX - rect.left + 16, ty = e.clientY - rect.top - 10;
+    if (tx + 220 > W) tx = e.clientX - rect.left - 220;
+    tip.style.left = tx + 'px'; tip.style.top = ty + 'px';
+  } else {
+    tip.className = 'sig-tip';
+  }
+});
+canvas.addEventListener('mouseleave', () => { tip.className = 'sig-tip'; });
+
+// Click → ask agent
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  for (const s of signals) {
+    const dx = s.x - mx, dy = s.y - my;
+    if (Math.sqrt(dx * dx + dy * dy) < s.size + 10) {
+      window.location.href = `dashboard?q=Radar+alert+$${s.symbol}`;
+      break;
+    }
+  }
+});
+
+// ── Feed ──
+function renderFeed() {
+  const list = document.getElementById('feedList');
+  const filtered = currentFilter === 'all' ? signals : signals.filter(s =>
+    currentFilter === 'hot' ? s.heat === 'hot' : s.types.includes(currentFilter)
+  );
+  list.innerHTML = filtered.slice(0, 20).map((s, i) => {
+    const sc = s.score >= 85 ? 'var(--g)' : s.score >= 70 ? 'var(--a)' : 'var(--c)';
+    return `<div class="fc ${s.heat} stg" style="animation-delay:${i * .04}s" onclick="window.location.href='dashboard?q=Radar+$${s.symbol}'">
+      <div class="fc-top">
+        <div class="fc-sym" style="color:${sc}">$${s.symbol} <span class="fc-name">${s.name}</span></div>
+        <div class="fc-score" style="color:${sc}">${s.score}</div>
+      </div>
+      <div class="fc-tags">${s.types.map(t => `<span class="fc-tag ${t}">${t}</span>`).join('')}</div>
+      <div class="fc-desc">${s.desc}</div>
+      <div class="fc-meta"><span>${s.time}</span><span class="fc-price">${fmt(s.price)} <span style="color:${pc(s.change)}">${pct(s.change)}</span></span></div>
+      <div class="fc-bar"><div class="fc-bar-fill" style="width:${s.score}%;background:${sc}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const list = document.getElementById('histList');
+  const past = signals.slice(0, 12).map(s => {
+    const hit = Math.random() > 0.35;
+    const pctChange = hit ? '+' + (Math.random() * 30 + 5).toFixed(1) + '%' : (Math.random() * -15 - 2).toFixed(1) + '%';
+    return { ...s, hit, pctChange };
+  });
+  list.innerHTML = past.map(s => `<div class="hist-item">
+    <div class="hist-top"><div class="hist-sym">$${s.symbol}</div><div class="hist-score" style="color:${s.score >= 85 ? 'var(--g)' : s.score >= 70 ? 'var(--a)' : 'var(--c)'}">Score ${s.score}</div></div>
+    <div class="hist-desc">${s.desc}</div>
+    <span class="hist-result ${s.hit ? 'win' : 'miss'}">${s.hit ? '✓ HIT' : '✗ MISS'} ${s.pctChange} in 24h</span>
+  </div>`).join('');
+}
+
+function updateStats() {
+  const hot = signals.filter(s => s.score >= 85).length;
+  const avg = signals.length ? Math.round(signals.reduce((a, s) => a + s.score, 0) / signals.length) : 0;
+  document.getElementById('rSigCount').textContent = signals.length;
+  document.getElementById('rHotCount').textContent = hot;
+  document.getElementById('rAvgScore').textContent = avg;
+}
+
+// ── Panel ──
+function switchTab(tab, el) {
+  document.querySelectorAll('.pn-tab').forEach(t => t.classList.remove('ac'));
+  document.querySelectorAll('.pn-section').forEach(s => s.classList.remove('ac'));
+  el.classList.add('ac');
+  document.getElementById('sec-' + tab).classList.add('ac');
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('ac'));
+  el.classList.add('ac');
+  renderFeed();
+}
+
+// ── Init ──
+loadRadarSignals().then((ok) => {
+  if (!ok) {
+    loadMarket();
+  }
+  drawRadar();
+  // Refresh radar signals every 30s (fallback keeps existing timers)
+  setInterval(loadRadarSignals, 30000);
+  setInterval(loadMarket, 60000);
+  // Re-generate fallback signals every 2 min
+  setInterval(() => { if (!signals.length) generateSignals(); }, 120000);
+});
+</script>
+</body>
+</html>

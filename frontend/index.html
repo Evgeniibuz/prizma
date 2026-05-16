@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PULSΞ</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260221_1">
+  <style>
+    .cnt{position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding-bottom:80px}
+    .logo{font-family:var(--fd);font-weight:800;font-size:72px;letter-spacing:18px;color:#fff;text-indent:18px;margin-bottom:20px;opacity:0;animation:rU 1.2s cubic-bezier(.16,1,.3,1) .6s forwards}
+    .tag{font-family:var(--fs);font-weight:300;font-size:18px;letter-spacing:4px;color:var(--w45);text-transform:uppercase;margin-bottom:12px;opacity:0;animation:rU 1.2s cubic-bezier(.16,1,.3,1) .9s forwards}
+    .auth{display:flex;flex-direction:column;align-items:center;gap:14px;pointer-events:auto;margin-top:calc(280px + 6vh);opacity:0;animation:rU 1.2s cubic-bezier(.16,1,.3,1) 1.2s forwards}
+    .auth-btn{width:240px;height:48px;font-size:12px;letter-spacing:2px}
+    .auth-btn:hover{letter-spacing:2.5px}
+    
+    /* Modal */
+    .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;animation:fI .3s ease}
+    .modal.show{display:flex}
+    .modal-content{width:420px;max-width:90%;background:rgba(0,0,0,.95);border:1px solid var(--w12);border-radius:4px;padding:32px;position:relative;animation:slideUp .4s cubic-bezier(.16,1,.3,1)}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .modal-title{font-family:var(--fd);font-size:24px;letter-spacing:4px;color:#fff}
+    .modal-close{width:32px;height:32px;border:1px solid var(--w12);border-radius:2px;background:rgba(0,0,0,.3);color:var(--w45);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;border:none}.modal-close:hover{background:var(--w12);color:#fff}
+    .modal-close svg{width:16px;height:16px;fill:currentColor}
+    .modal-body{display:flex;flex-direction:column;gap:16px}
+    .inp-group{display:flex;flex-direction:column;gap:8px}
+    .inp-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--w45);text-transform:uppercase}
+    .inp-hint{font-family:var(--fm);font-size:9px;letter-spacing:.5px;color:var(--w20);margin-top:-4px}
+    .inp{width:100%;height:48px;padding:0 16px;border:1px solid var(--w12);border-radius:2px;background:rgba(255,255,255,.05);color:#fff;font-family:var(--fm);font-size:13px;letter-spacing:.5px;outline:none;transition:border-color .3s}.inp::placeholder{color:var(--w20)}.inp:focus{border-color:rgba(255,255,255,.3)}
+    .btn-submit{width:100%;height:48px;border:1px solid rgba(0,255,163,.3);border-radius:2px;background:rgba(0,255,163,.08);color:var(--g);font-family:var(--fm);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .35s;margin-top:8px}.btn-submit:hover{background:rgba(0,255,163,.15);border-color:rgba(0,255,163,.5)}
+    .btn-submit:disabled{opacity:.4;cursor:not-allowed}
+    .err{font-family:var(--fm);font-size:10px;color:var(--r);display:none;margin-top:12px}.err.show{display:block}
+    .modal-footer{margin-top:20px;padding-top:20px;border-top:1px solid var(--w8);text-align:center}
+    .link-text{font-family:var(--fm);font-size:10px;letter-spacing:1px;color:var(--w45)}
+    .link-btn{color:var(--g);cursor:pointer;text-decoration:none;transition:color .3s}.link-btn:hover{color:#fff}
+    
+    .bm{position:fixed;bottom:32px;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:center;gap:20px;opacity:0;animation:fI 2s ease 2s forwards}
+    .bm span{font-family:var(--fm);font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.12);text-transform:uppercase}
+    .tw{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);transition:all .3s;cursor:pointer;text-decoration:none}
+    .tw:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.15)}
+    .tw svg{width:16px;height:16px;fill:rgba(255,255,255,.4);transition:fill .3s}
+    .tw:hover svg{fill:rgba(255,255,255,.7)}
+    @media(max-width:768px){.cnt{padding-bottom:100px}.logo{font-size:40px;letter-spacing:10px}.tag{font-size:14px;letter-spacing:3px;margin-bottom:32px;padding:0 20px;text-align:center}.auth{margin-top:calc(80px + 6vh)}.auth-btn{width:280px}.modal-content{padding:24px}.bm{bottom:20px;gap:16px}.bm span{font-size:9px;letter-spacing:2px}.tw{width:28px;height:28px}.tw svg{width:14px;height:14px}}
+    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+  </style>
+</head>
+<body>
+<div id="ubg"><div data-us-project="lvQHbwURkWLN3CcEaMHS" style="width:1440px;height:900px"></div></div>
+<div class="cnt">
+  <div class="tag">The market feels. We read.</div>
+  <div class="logo">PULSΞ</div>
+  <div class="auth">
+    <button class="btn auth-btn" onclick="openLogin()">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+      </svg>
+      Login
+    </button>
+    <button class="btn auth-btn btn-a" onclick="openRegister()">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor">
+        <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+      Register
+    </button>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal" id="loginModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Login</div>
+      <button class="modal-close" onclick="closeModal('loginModal')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="inp-group">
+        <label class="inp-label">Username</label>
+        <input type="text" class="inp" id="loginUsername" placeholder="username" autocomplete="username">
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">Password</label>
+        <input type="password" class="inp" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="err" id="loginError"></div>
+      <button class="btn-submit" onclick="handleLogin()">Sign In</button>
+    </div>
+    <div class="modal-footer">
+      <span class="link-text">Don't have an account? <a class="link-btn" onclick="switchToRegister()">Register</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal" id="registerModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Register</div>
+      <button class="modal-close" onclick="closeModal('registerModal')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="inp-group">
+        <label class="inp-label">Username</label>
+        <input type="text" class="inp" id="registerUsername" placeholder="username" autocomplete="username">
+        <div class="inp-hint">3-50 characters: letters, numbers, _ and -</div>
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">Password</label>
+        <input type="password" class="inp" id="registerPassword" placeholder="Min 4 characters" autocomplete="new-password">
+        <div class="inp-hint">Minimum 4 characters</div>
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">Confirm Password</label>
+        <input type="password" class="inp" id="registerPasswordConfirm" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+      <div class="err" id="registerError"></div>
+      <button class="btn-submit" onclick="handleRegister()">Create Account</button>
+    </div>
+    <div class="modal-footer">
+      <span class="link-text">Already have an account? <a class="link-btn" onclick="switchToLogin()">Login</a></span>
+    </div>
+  </div>
+</div>
+
+<div class="bm">
+  <span>© 2026 PULSΞ</span>
+  <a href="https://x.com/theprizm_ai" target="_blank" class="tw" aria-label="Twitter">
+    <svg viewBox="0 0 24 24">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  </a>
+</div>
+
+<script src="config.js?v=20260221_1"></script>
+<script src="api.js?v=20260221_1"></script>
+<script src="utils.js?v=20260221_1"></script>
+<script>
+initUnicorn();
+
+// Modal functions
+function openLogin() {
+  document.getElementById('loginModal').classList.add('show');
+  document.getElementById('loginUsername').focus();
+}
+
+function openRegister() {
+  document.getElementById('registerModal').classList.add('show');
+  document.getElementById('registerUsername').focus();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  // Clear errors
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('registerError').classList.remove('show');
+}
+
+function switchToRegister() {
+  closeModal('loginModal');
+  setTimeout(() => openRegister(), 150);
+}
+
+function switchToLogin() {
+  closeModal('registerModal');
+  setTimeout(() => openLogin(), 150);
+}
+
+// Validation helpers
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+function sanitizeInput(input) {
+  return input.trim().replace(/[<>]/g, '');
+}
+
+function showError(elementId, message) {
+  const el = document.getElementById(elementId);
+  el.textContent = message;
+  el.classList.add('show');
+}
+
+function clearError(elementId) {
+  document.getElementById(elementId).classList.remove('show');
+}
+
+// Login handler
+async function handleLogin() {
+  clearError('loginError');
+  
+  const username = sanitizeInput(document.getElementById('loginUsername').value);
+  const password = document.getElementById('loginPassword').value;
+  
+  // Validation
+  if (!username || !password) {
+    showError('loginError', 'Please fill all fields');
+    return;
+  }
+  
+  if (username.length < 3) {
+    showError('loginError', 'Username must be at least 3 characters');
+    return;
+  }
+  
+  if (password.length < 4) {
+    showError('loginError', 'Password must be at least 4 characters');
+    return;
+  }
+  
+  // Disable button
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Handle validation errors from backend
+      let errorMsg = 'Login failed';
+      if (data.detail) {
+        if (typeof data.detail === 'string') {
+          errorMsg = data.detail;
+        } else if (Array.isArray(data.detail) && data.detail[0]?.msg) {
+          errorMsg = data.detail[0].msg;
+        }
+      }
+      throw new Error(errorMsg);
+    }
+    
+    // Save token
+    localStorage.setItem('pulse_token', data.token);
+    localStorage.setItem('pulse_username', data.username);
+    
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
+    
+  } catch (error) {
+    showError('loginError', error.message);
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+// Register handler
+async function handleRegister() {
+  clearError('registerError');
+  
+  const username = sanitizeInput(document.getElementById('registerUsername').value);
+  const password = document.getElementById('registerPassword').value;
+  const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+  
+  // Validation
+  if (!username || !password || !passwordConfirm) {
+    showError('registerError', 'Please fill all fields');
+    return;
+  }
+  
+  if (username.length < 3) {
+    showError('registerError', 'Username must be at least 3 characters');
+    return;
+  }
+  
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    showError('registerError', 'Username can only contain letters, numbers, _ and -');
+    return;
+  }
+  
+  if (password.length < 4) {
+    showError('registerError', 'Password must be at least 4 characters');
+    return;
+  }
+  
+  if (password !== passwordConfirm) {
+    showError('registerError', 'Passwords do not match');
+    return;
+  }
+  
+  // Disable button
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Handle validation errors from backend
+      let errorMsg = 'Registration failed';
+      if (data.detail) {
+        if (typeof data.detail === 'string') {
+          errorMsg = data.detail;
+        } else if (Array.isArray(data.detail) && data.detail[0]?.msg) {
+          errorMsg = data.detail[0].msg;
+        }
+      }
+      throw new Error(errorMsg);
+    }
+    
+    // Save token
+    localStorage.setItem('pulse_token', data.token);
+    localStorage.setItem('pulse_username', data.username);
+    
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
+    
+  } catch (error) {
+    showError('registerError', error.message);
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeModal('loginModal');
+    closeModal('registerModal');
+  }
+});
+
+// Close modal on background click
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal(modal.id);
+    }
+  });
+});
+
+// Handle Enter key in inputs
+document.querySelectorAll('#loginModal .inp').forEach(input => {
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+});
+
+document.querySelectorAll('#registerModal .inp').forEach(input => {
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleRegister();
+  });
+});
+</script>
+</body>
+</html>

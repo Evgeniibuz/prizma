@@ -1,0 +1,13 @@
+# Picked up automatically by `docker compose up` in development.
+# Provides hot reload and bind mounts of the source tree so edits are
+# reflected without rebuilding.
+
+services:
+  backend:
+    volumes:
+      - ./python:/app
+      - ./frontend:/frontend
+      - ./images:/images
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      LOG_LEVEL: DEBUG

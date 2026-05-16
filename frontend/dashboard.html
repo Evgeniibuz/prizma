@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PULSΞ — Dashboard</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .app-dash{position:relative;z-index:10;width:100%;height:100%;display:grid;grid-template-columns:240px 1fr 370px;grid-template-rows:56px 1fr;grid-template-areas:"sb tb tb" "sb mn ag";overflow:hidden}
+    .app-dash.hide-agent{grid-template-columns:240px 1fr 0}
+    /* Agent */
+    .ag{grid-area:ag;border-left:1px solid var(--w8);background:rgba(0,0,0,.75);display:flex;flex-direction:column;height:100%;overflow:hidden;transition:transform .35s ease,opacity .35s ease;transform:translateX(0);width:370px;position:relative}
+    .app-dash.hide-agent .ag{transform:translateX(100%);opacity:0;pointer-events:none}
+    /* Sidebar */
+    .sb{grid-area:sb;border-right:1px solid var(--w8);background:rgba(0,0,0,.75);display:flex;flex-direction:column;padding:16px 0;overflow-y:auto;will-change:scroll-position}
+    .ss{padding:0 16px;margin-bottom:24px}.sl{font-size:8px;letter-spacing:3px;color:var(--w20);text-transform:uppercase;margin-bottom:12px}
+    .ni{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:2px;font-size:11px;letter-spacing:1px;color:var(--w45);cursor:pointer;transition:all .25s;border:none;background:none;width:100%;text-align:left;font-family:var(--fm)}.ni:hover{color:#fff;background:var(--w4)}.ni.ac{color:#fff;background:var(--w8)}.ni svg{width:13px;height:13px;opacity:.5}
+    .wi{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;border-radius:2px;transition:background .2s}.wi:hover{background:var(--w4)}
+    .ws{font-size:11px;font-weight:500;color:#fff;letter-spacing:1px}.wn{font-size:8px;color:var(--w20);margin-top:2px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wp{font-size:11px;color:var(--w70);text-align:right}.wc{font-size:9px;margin-top:2px;text-align:right}
+    .cw{margin-top:auto;padding:16px;border-top:1px solid var(--w6)}.ct-lbl{font-size:8px;letter-spacing:3px;color:var(--w20);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}.ct-lbl::before{content:'$';color:var(--g);font-size:10px}
+    .cl{display:flex;flex-wrap:wrap;gap:6px}.csh{padding:4px 10px;border:1px solid var(--w6);border-radius:2px;font-size:10px;letter-spacing:1px;color:var(--g);cursor:pointer;transition:all .2s;background:none;font-family:var(--fm)}.csh:hover{border-color:rgba(0,255,163,.3);background:rgba(0,255,163,.05)}
+    /* Main */
+    .mn{grid-area:mn;overflow-y:auto;padding:20px 24px}
+    .st{font-family:var(--fs);font-weight:300;font-size:24px;color:var(--w70);margin-bottom:18px;letter-spacing:1px}
+    .sr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+    .sc{padding:16px 14px;border:1px solid var(--w8);border-radius:2px;background:rgba(0,0,0,.6);transition:border-color .3s}.sc:hover{border-color:var(--w20)}
+    .scl{font-size:8px;letter-spacing:2px;color:var(--w20);text-transform:uppercase;margin-bottom:6px}.scv{font-size:20px;font-weight:500;color:#fff}.scs{font-size:10px;margin-top:3px}
+    .tw{border:1px solid var(--w8);border-radius:2px;overflow:hidden;background:rgba(0,0,0,.6);margin-bottom:24px}
+    .th{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--w8)}.tt{font-size:10px;letter-spacing:2px;color:var(--w45);text-transform:uppercase}
+    table{width:100%;border-collapse:collapse}th{font-size:8px;letter-spacing:2px;color:var(--w20);text-transform:uppercase;text-align:left;padding:10px 18px;border-bottom:1px solid var(--w4);font-weight:400}th:hover{color:var(--w70)}
+    td{font-size:11px;color:var(--w70);padding:12px 18px;border-bottom:1px solid var(--w4);transition:background .2s}tr:hover td{background:var(--w4)}tr:last-child td{border-bottom:none}
+    .tc{display:flex;align-items:center;gap:8px}.ti{width:22px;height:22px;border-radius:50%;background:var(--w8);overflow:hidden}.ti img{width:100%;height:100%}.ts{color:#fff;font-weight:500;letter-spacing:1px}.tn{color:var(--w20);font-size:9px;margin-left:3px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* Signals */
+    .sigc{border:1px solid var(--w8);border-radius:2px;padding:16px 18px;background:rgba(0,0,0,.6);margin-bottom:10px;transition:border-color .3s}.sigc:hover{border-color:var(--w20)}
+    .sigt{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+    .sigb{font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px}.sigb.bu{color:var(--g);background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.15)}.sigb.be{color:var(--r);background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.15)}.sigb.ca{color:var(--a);background:rgba(255,187,0,.08);border:1px solid rgba(255,187,0,.15)}
+    .sigtm{font-size:9px;color:var(--w20);letter-spacing:1px}.sigbd{font-size:12px;color:var(--w70);line-height:1.7}.sigtk{color:var(--g);font-weight:500;cursor:pointer}
+    /* Cashtags view */
+    .cshtag-card{border:1px solid var(--w8);border-radius:2px;padding:14px 18px;background:rgba(0,0,0,.6);margin-bottom:10px;display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:20px;transition:border-color .3s;cursor:pointer}.cshtag-card:hover{border-color:var(--w20)}
+    .cshtag-sym{font-size:14px;font-weight:500;color:var(--g);letter-spacing:2px}.cshtag-name{font-size:9px;color:var(--w20);margin-top:2px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .cshtag-m{font-size:8px;letter-spacing:2px;color:var(--w20);text-transform:uppercase;margin-bottom:3px}.cshtag-v{font-size:13px;color:var(--w70)}
+    .sent-bar{width:80px;height:4px;background:var(--w6);border-radius:2px;margin-top:4px;overflow:hidden}.sent-fill{height:100%;border-radius:2px}
+    /* Agent */
+    .ah{padding:14px 18px;border-bottom:1px solid var(--w8);display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+    .at{font-size:9px;letter-spacing:3px;color:var(--w45);text-transform:uppercase}
+    .abg{font-size:8px;letter-spacing:2px;color:var(--g);text-transform:uppercase;display:flex;align-items:center;gap:6px}.abg::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g)}
+    .am{position:relative;flex:1 1 0;overflow-y:auto;overflow-x:hidden;padding:18px;scroll-behavior:smooth}
+    .msg{max-width:92%;margin-bottom:14px;animation:mI .4s cubic-bezier(.16,1,.3,1);display:block}.msg-a{margin-right:auto}.msg-u{margin-left:auto}
+    .mb{padding:12px 16px;border-radius:2px;font-size:11px;line-height:1.7;color:var(--w70);letter-spacing:.3px}
+    .msg-a .mb{background:var(--w4);border:1px solid var(--w8)}.msg-u .mb{background:rgba(100,120,255,.08);border:1px solid rgba(100,120,255,.15);color:rgba(255,255,255,.8)}
+    .mm{font-size:8px;color:var(--w20);margin-top:5px;letter-spacing:1px;text-transform:uppercase}.msg-u .mm{text-align:right}
+    .td{display:flex;gap:4px;padding:12px 16px}.td span{width:4px;height:4px;border-radius:50%;background:var(--w20);animation:dP 1.4s ease infinite}.td span:nth-child(2){animation-delay:.2s}.td span:nth-child(3){animation-delay:.4s}
+    .aiw{padding:14px 18px;border-top:1px solid var(--w8);flex:0 0 auto}.air{display:flex;gap:8px}
+    .aip{flex:1;height:42px;padding:0 14px;border:1px solid var(--w8);border-radius:2px;background:rgba(0,0,0,.3);color:#fff;font-family:var(--fm);font-size:11px;outline:none;transition:border-color .3s}.aip::placeholder{color:var(--w20)}.aip:focus{border-color:var(--w20)}
+    .ais{width:42px;height:42px;border:1px solid var(--w12);border-radius:2px;background:var(--w4);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;font-size:14px}.ais:hover{background:var(--w8);border-color:var(--w20)}
+    .btn-toggle-agent{width:28px;height:28px;border:1px solid var(--w12);border-radius:2px;background:rgba(0,0,0,.3);color:var(--w45);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;border:none}.btn-toggle-agent:hover{background:var(--w12);color:var(--r)}.btn-toggle-agent svg{width:14px;height:14px;fill:currentColor}
+    .btn-close-mobile{display:none}
+    .btn-open-agent{position:fixed;bottom:20px;right:20px;z-index:100;padding:12px 20px;border:1px solid rgba(0,255,163,.3);border-radius:2px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:var(--g);font-family:var(--fm);font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:none;align-items:center;gap:8px;transition:all .3s;box-shadow:0 4px 12px rgba(0,0,0,.3)}.btn-open-agent:hover{background:rgba(0,255,163,.1);border-color:rgba(0,255,163,.5);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,255,163,.2)}.btn-open-agent svg{width:16px;height:16px;fill:currentColor}
+    .app-dash.hide-agent .btn-open-agent{display:flex}
+    .qa{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+    .qb{padding:4px 9px;border:1px solid var(--w8);border-radius:2px;background:none;color:var(--w20);font-family:var(--fm);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .25s}.qb:hover{color:var(--w70);border-color:var(--w20)}
+    @media(max-width:768px){
+      .btn-close-desktop{display:none}
+      .btn-close-mobile{display:none}
+      .ag.mob-open .btn-close-mobile{display:flex}
+      .btn-open-agent{display:none!important}
+      .ag.mob-open .aip{font-size:14px;height:48px;padding:0 16px}
+      .ag.mob-open .ais{width:48px;height:48px;font-size:16px}
+      .ag.mob-open .qb{font-size:10px;padding:8px 12px}
+      .ag.mob-open .am{padding:16px}
+      .ag.mob-open .aiw{padding:16px}
+      .ni{font-size:10px;padding:8px 12px}
+      .mn{padding:14px 12px;padding-bottom:70px}
+      .sr{grid-template-columns:repeat(2,1fr);gap:8px}
+      .cshtag-card{grid-template-columns:1fr 1fr;gap:10px}
+      .cshtag-card>div:nth-child(n+3){display:none}
+      table{font-size:10px}
+      td,th{padding:10px 6px;font-size:10px}
+      .btn-a{height:28px!important;font-size:8px!important;padding:0 10px!important;white-space:nowrap}
+      th:last-child,td:last-child{width:60px;text-align:center}
+    }
+  </style>
+</head>
+<body>
+<div id="ubg" class="blur"><div data-us-project="lvQHbwURkWLN3CcEaMHS" style="width:1440px;height:900px"></div></div>
+<div class="overlay"></div>
+<div class="app-dash">
+  <!-- Topbar -->
+  <header class="tb" style="grid-area:tb">
+    <div class="tb-l">
+      <div class="tb-logo">PULSΞ</div>
+      <div class="tb-st">Agent Online</div>
+    </div>
+    <div class="tb-r">
+      <div class="tb-t" id="clock"></div>
+      <div class="tb-t" id="userDisplay" style="margin-right:16px"></div>
+      <a class="btn btn-n" href="https://x.com/CashtagAgent" target="_blank">Twitter</a>
+      <a class="btn btn-n" href="agents">Agents Lab</a>
+      <button class="btn btn-n" onclick="handleLogout()" style="border-color:rgba(255,68,102,.3);color:var(--r)">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </header>
+  <!-- Sidebar -->
+  <nav class="sb">
+    <div class="ss"><div class="sl">Navigation</div>
+      <button class="ni ac" onclick="sv('overview',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Overview</button>
+      <button class="ni" onclick="sv('markets',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Markets</button>
+      <button class="ni" onclick="sv('signals',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Signals</button>
+      <button class="ni" onclick="sv('cashtags',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>Cashtags</button>
+      <a class="ni" href="radar" style="text-decoration:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>Radar</a>
+    </div>
+    <div class="ss" style="flex:1"><div class="sl">Watchlist</div><div id="wl"></div></div>
+    <div class="cw"><div class="ct-lbl">Trending Cashtags</div><div class="cl" id="cL"></div></div>
+  </nav>
+  <!-- Main -->
+  <main class="mn" id="mc"></main>
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="btm-nav">
+    <button class="btm-nav-btn ac" onclick="sv('overview',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Overview
+    </button>
+    <button class="btm-nav-btn" onclick="sv('markets',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+      Markets
+    </button>
+    <button class="btm-nav-btn" onclick="sv('signals',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Signals
+    </button>
+    <button class="btm-nav-btn" onclick="window.location.href='/radar'">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>
+      Radar
+    </button>
+    <button class="btm-nav-btn" onclick="toggleChat()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+      Chat
+    </button>
+  </nav>
+  <!-- Agent -->
+  <aside class="ag">
+    <div class="ah">
+      <div class="at">PULSΞ Agent</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="abg">Ready</div>
+        <button class="btn-toggle-agent btn-close-desktop" onclick="toggleAgent()" title="Hide Agent Panel">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+        <button class="btn-toggle-agent btn-close-mobile" onclick="toggleChat()" title="Close Chat">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="am" id="aM"><div class="msg msg-a"><div class="mb">Welcome to PULSΞ. I'm your AI market intelligence agent.<br><br>Ask about any asset — I'll pull data, analyze momentum, and give you a verdict. Try any <strong style="color:var(--g)">$CASHTAG</strong> to start.</div><div class="mm">PULSΞ Agent</div></div></div>
+    <div class="aiw">
+      <div class="air"><input class="aip" id="aI" placeholder="$BTC analysis, risk check $SOL..." onkeydown="if(event.key==='Enter')send()"><button class="ais" onclick="send()">→</button></div>
+      <div class="qa">
+        <button class="qb" onclick="qA('Deep analysis $BTC')">$BTC</button>
+        <button class="qb" onclick="qA('Risk check $ETH')">$ETH</button>
+        <button class="qb" onclick="qA('Momentum $SOL')">$SOL</button>
+        <button class="qb" onclick="qA('Top movers today')">Movers</button>
+        <button class="qb" onclick="qA('Fear & Greed outlook')">F&G</button>
+        <button class="qb" onclick="qA('Trending $CASHTAGs today')">Cashtags</button>
+      </div>
+    </div>
+  </aside>
+  <!-- Toggle Agent Button (shows when agent is hidden) -->
+  <button class="btn-open-agent" onclick="toggleAgent()" title="Open Agent Panel">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+    Agent
+  </button>
+</div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script>
+// Auth check - redirect to login if no token
+const token = localStorage.getItem('pulse_token');
+const username = localStorage.getItem('pulse_username');
+
+if (!token) {
+  window.location.href = '/';
+  throw new Error('Not authenticated');
+}
+
+// Display username
+if (username) {
+  const userEl = document.getElementById('userDisplay');
+  if (userEl) {
+    userEl.textContent = username;
+    userEl.style.color = 'var(--g)';
+  }
+}
+
+initUnicorn();
+startClock(document.getElementById('clock'));
+
+let md = [], mdTop = [], cv = 'overview', lastUpdate = Date.now(), sortBy = 'market_cap', sortDir = 'desc', agentVisible = true;
+
+async function loadMarket() {
+  md = await API.market();
+  if (!md || md.length === 0) {
+    return;
+  }
+  lastUpdate = Date.now();
+  rW(); rC(); rv();
+  updateRefreshTimers();
+}
+
+async function loadTopCoins() {
+  if (mdTop.length > 0) return; // Already loaded
+  mdTop = await API.topCoins(100) || [];
+  if (cv === 'markets') rv(); // Refresh if already on markets view
+}
+
+function updateRefreshTimers() {
+  const timers = document.querySelectorAll('.refresh-timer');
+  timers.forEach(t => {
+    const elapsed = Math.floor((Date.now() - lastUpdate) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    t.textContent = mins > 0 ? `${mins}m ${secs}s ago` : `${secs}s ago`;
+  });
+}
+
+function rW() {
+  document.getElementById('wl').innerHTML = md.slice(0, 6).map(c =>
+    `<div class="wi" onclick="qA('Analysis $${c.symbol.toUpperCase()}')"><div><div class="ws">${c.symbol.toUpperCase()}</div><div class="wn" title="${c.name}">${c.name}</div></div><div><div class="wp">${fmt(c.current_price)}</div><div class="wc" style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</div></div></div>`
+  ).join('');
+}
+
+function rC() {
+  const t = [...md].sort((a, b) => Math.abs(b.price_change_percentage_24h_in_currency) - Math.abs(a.price_change_percentage_24h_in_currency)).slice(0, 8);
+  document.getElementById('cL').innerHTML = t.map(c => `<button class="csh" onclick="qA('Analysis $${c.symbol.toUpperCase()}')">$${c.symbol.toUpperCase()}</button>`).join('');
+}
+
+function sv(v, el) { 
+  cv = v; 
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('ac')); 
+  document.querySelectorAll('.btm-nav-btn').forEach(n => n.classList.remove('ac')); 
+  if (el) el.classList.add('ac'); 
+  if (v === 'markets') loadTopCoins(); // Load top 100 when switching to Markets
+  document.querySelector('.ag').classList.remove('mob-open');
+  rv(); 
+}
+
+function toggleChat() {
+  const ag = document.querySelector('.ag');
+  const btmNav = document.querySelector('.btm-nav');
+  const isOpen = ag.classList.contains('mob-open');
+  if (isOpen) {
+    ag.classList.remove('mob-open');
+    if (btmNav) btmNav.style.display = 'flex';
+    document.querySelectorAll('.btm-nav-btn').forEach(n => n.classList.remove('ac'));
+  } else {
+    ag.classList.add('mob-open');
+    if (btmNav) btmNav.style.display = 'none';
+    document.querySelectorAll('.btm-nav-btn').forEach(n => n.classList.remove('ac'));
+    document.querySelectorAll('.btm-nav-btn')[4].classList.add('ac');
+  }
+}
+
+function toggleAgent() {
+  agentVisible = !agentVisible;
+  const appDash = document.querySelector('.app-dash');
+  appDash.classList.toggle('hide-agent');
+}
+
+async function handleLogout() {
+  // API.logout clears localStorage and best-effort notifies the backend.
+  await API.logout();
+  window.location.href = '/';
+}
+
+async function rv() {
+  const m = document.getElementById('mc');
+  if (cv === 'overview') rOV(m);
+  else if (cv === 'markets') rMK(m);
+  else if (cv === 'signals') rSG(m);
+  else if (cv === 'cashtags') await rCS(m);
+}
+
+function rOV(m) {
+  const tc = md.reduce((s, c) => s + (c.market_cap || 0), 0);
+  const tv = md.reduce((s, c) => s + (c.total_volume || 0), 0);
+  const ac = md.reduce((s, c) => s + (c.price_change_percentage_24h_in_currency || 0), 0) / md.length;
+  const data = mdTop.length > 0 ? mdTop : md;
+  const tp = [...data].sort((a, b) => (b.price_change_percentage_24h_in_currency || 0) - (a.price_change_percentage_24h_in_currency || 0))[0];
+  m.innerHTML = `<div class="st stg s1">Market Overview</div>
+  <div class="sr stg s2"><div class="sc"><div class="scl">Total Market Cap</div><div class="scv">${fmt(tc)}</div></div><div class="sc"><div class="scl">24h Volume</div><div class="scv">${fmt(tv)}</div></div><div class="sc"><div class="scl">Avg 24h</div><div class="scv" style="color:${pc(ac)}">${pct(ac)}</div></div><div class="sc"><div class="scl">Top Mover</div><div class="scv">${tp ? tp.symbol.toUpperCase() : '—'}</div><div class="scs" style="color:${pc(tp?.price_change_percentage_24h_in_currency)}">${tp ? pct(tp.price_change_percentage_24h_in_currency) : '—'}</div></div></div>
+  <div class="tw stg s3"><div class="th"><div class="tt">Top Assets <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div></div>
+  <table><thead><tr><th>#</th><th>Asset</th><th>Price</th><th>1h</th><th>24h</th><th>7d</th><th></th></tr></thead><tbody>
+  ${md.slice(0, 6).map((c, i) => `<tr><td style="color:var(--w20)">${i + 1}</td><td><div class="tc"><div class="ti"><img src="${getCryptoIcon(c.symbol)}" alt="${c.symbol}" onerror="showIconFallback(this, '${c.symbol}')"></div><span class="ts">${c.symbol.toUpperCase()}</span><span class="tn" title="${c.name}">${c.name}</span></div></td><td style="color:#fff;font-weight:500">${fmt(c.current_price)}</td><td style="color:${pc(c.price_change_percentage_1h_in_currency)}">${pct(c.price_change_percentage_1h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_7d_in_currency)}">${pct(c.price_change_percentage_7d_in_currency)}</td><td><button class="btn btn-a" style="height:24px;font-size:7px" onclick="qA('Deep analysis $${c.symbol.toUpperCase()}')">Analyze</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+function sortMarkets(field) {
+  if (sortBy === field) {
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    sortBy = field;
+    sortDir = 'desc';
+  }
+  rv();
+}
+
+function rMK(m) {
+  let data = mdTop.length > 0 ? [...mdTop] : [...md];
+  const loadingMsg = mdTop.length === 0 ? '<div style="padding:40px;text-align:center;color:var(--w45)">⏳ Loading top 100 coins...</div>' : '';
+  
+  // Sort data
+  if (data.length > 0) {
+    data.sort((a, b) => {
+      let valA = a[sortBy] || 0;
+      let valB = b[sortBy] || 0;
+      return sortDir === 'desc' ? valB - valA : valA - valB;
+    });
+  }
+  
+  const sortIcon = (field) => sortBy === field ? (sortDir === 'desc' ? ' ▼' : ' ▲') : '';
+  const thStyle = (field) => `cursor:pointer;user-select:none;transition:color .2s" onclick="sortMarkets('${field}')`;
+  
+  m.innerHTML = `<div class="st stg s1">All Markets — Top ${data.length}</div>
+  <div class="tw stg s2"><div class="th"><div class="tt">Full Market Data <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div></div>
+  ${loadingMsg || `<table><thead><tr><th>#</th><th>Asset</th><th style="${thStyle('current_price')}">Price${sortIcon('current_price')}</th><th style="${thStyle('price_change_percentage_24h_in_currency')}">24h${sortIcon('price_change_percentage_24h_in_currency')}</th><th style="${thStyle('price_change_percentage_7d_in_currency')}">7d${sortIcon('price_change_percentage_7d_in_currency')}</th><th style="${thStyle('total_volume')}">Volume${sortIcon('total_volume')}</th><th style="${thStyle('market_cap')}">MCap${sortIcon('market_cap')}</th><th>Risk</th></tr></thead><tbody>
+  ${data.map((c, i) => `<tr><td style="color:var(--w20)">${i + 1}</td><td><div class="tc"><div class="ti"><img src="${getCryptoIcon(c.symbol)}" alt="${c.symbol}" onerror="showIconFallback(this, '${c.symbol}')"></div><span class="ts">${c.symbol.toUpperCase()}</span><span class="tn" title="${c.name}">${c.name}</span></div></td><td style="color:#fff;font-weight:500">${fmt(c.current_price)}</td><td style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_7d_in_currency)}">${pct(c.price_change_percentage_7d_in_currency)}</td><td>${fmt(c.total_volume)}</td><td>${fmt(c.market_cap)}</td><td><button class="btn btn-a" onclick="qA('Risk $${c.symbol.toUpperCase()}')">Risk</button></td></tr>`).join('')}
+  </tbody></table>`}</div>`;
+}
+
+async function rSG(m) {
+  // Try to load cached signals first
+  m.innerHTML = `<div class="st stg s1">Trading Signals</div>
+  <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies based on market momentum, volume analysis, and sentiment data.</div>
+  <div style="text-align:center;padding:40px;color:var(--w45)">Loading cached signals...</div>`;
+  
+  try {
+    // First, try to get latest cached signals
+    let signals = await API.getLatestSignals(20);
+    let isCached = true;
+    
+    // If no cached signals, show generate button
+    if (!signals || signals.length === 0) {
+      m.innerHTML = `<div class="st stg s1">Trading Signals</div>
+      <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies. Generate fresh signals based on current market data.</div>
+      <div style="text-align:center;padding:40px">
+        <button class="btn btn-l" style="background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.3);color:var(--g);padding:12px 32px;font-size:11px;letter-spacing:2px;cursor:pointer" onclick="genSG()">Generate New Signals</button>
+        <div style="margin-top:16px;font-size:10px;color:var(--w20)">No cached signals available</div>
+      </div>`;
+      return;
+    }
+    
+    displaySignals(signals, m, isCached);
+  } catch (e) {
+    console.error('Failed to load signals:', e);
+    m.innerHTML = `<div class="st stg s1">Trading Signals</div>
+    <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies.</div>
+    <div style="text-align:center;padding:40px;color:var(--w45)">Failed to load signals. Please try again.</div>`;
+  }
+}
+
+async function genSG() {
+  const m = document.getElementById('mc');
+  m.innerHTML = `<div class="st stg s1">Trading Signals</div>
+  <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">Generating fresh AI signals...</div>
+  <div style="text-align:center;padding:40px;color:var(--w45)">Analyzing market data...</div>`;
+  
+  try {
+    const signals = await API.signals(md);
+    if (!signals || signals.length === 0) {
+      m.innerHTML = `<div class="st stg s1">Trading Signals</div>
+      <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies based on market momentum, volume analysis, and sentiment data.</div>
+      <div style="text-align:center;padding:40px;color:var(--w45)">No actionable signals at this time. Market consolidating.</div>`;
+      return;
+    }
+    
+    displaySignals(signals, m, false);
+  } catch (e) {
+    console.error('Failed to generate signals:', e);
+    m.innerHTML = `<div class="st stg s1">Trading Signals</div>
+    <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies.</div>
+    <div style="text-align:center;padding:40px;color:var(--w45)">Failed to generate signals. Please try again.</div>`;
+  }
+}
+
+function displaySignals(signals, container, isCached = false) {
+  const actionColors = {
+    BUY: { badge: 'bu', label: 'BUY', icon: '▲' },
+    SELL: { badge: 'be', label: 'SELL', icon: '▼' },
+    HOLD: { badge: 'ca', label: 'HOLD', icon: '◆' },
+    CLOSE: { badge: 'ca', label: 'CLOSE', icon: 'X' }
+  };
+  
+  const confidenceColor = (conf) => conf >= 75 ? 'var(--g)' : conf >= 50 ? 'var(--a)' : 'var(--w45)';
+  
+  const cacheInfo = isCached ? `<div style="font-size:10px;color:var(--w20);display:flex;align-items:center;gap:6px;margin-bottom:12px">
+    <span style="width:6px;height:6px;background:var(--c);border-radius:50%;box-shadow:0 0 6px var(--c)"></span>
+    Cached signals from latest generation · <button class="btn btn-l" style="background:none;border:1px solid var(--w8);color:var(--w45);padding:6px 16px;font-size:9px;letter-spacing:1.5px;cursor:pointer" onclick="genSG()">Generate Fresh</button>
+  </div>` : `<div style="font-size:10px;color:var(--g);display:flex;align-items:center;gap:6px;margin-bottom:12px">
+    <span style="width:6px;height:6px;background:var(--g);border-radius:50%;box-shadow:0 0 6px var(--g)"></span>
+    Freshly generated signals
+  </div>`;
+  
+  container.innerHTML = `<div class="st stg s1">Trading Signals</div>
+  <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies. ${signals.length} signals detected.</div>
+  ${cacheInfo}
+  ${signals.map((s, i) => {
+    const ac = actionColors[s.action] || actionColors.HOLD;
+    return `<div class="sigc stg" style="animation-delay:${.1 + i * .08}s">
+      <div class="sigt">
+        <div>
+          <span class="sigb ${ac.badge}">${ac.icon} ${ac.label}</span>
+          <span class="sigtk" style="margin-left:10px;font-size:13px;font-weight:600" onclick="qA('Deep analysis $${s.ticker}')">\$${s.ticker}</span>
+          <span style="margin-left:10px;font-size:9px;color:${confidenceColor(s.confidence)};font-weight:500">${s.confidence}% confidence</span>
+        </div>
+        <div class="sigtm">${s.timeframe}</div>
+      </div>
+      <div class="sigbd" style="margin-bottom:10px">${s.reason.replace(/\$([A-Z]+)/g, '<span class="sigtk" onclick="qA(\'Analysis $$$1\')">$$$1</span>')}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--w6)">
+        <div style="font-size:9px;color:var(--w20);text-transform:uppercase;letter-spacing:1px">Entry<div style="font-size:12px;color:var(--c);margin-top:3px;font-weight:500">\$${s.entry.toFixed(4)}</div></div>
+        <div style="font-size:9px;color:var(--w20);text-transform:uppercase;letter-spacing:1px">Target<div style="font-size:12px;color:var(--g);margin-top:3px;font-weight:500">\$${s.target.toFixed(4)}</div></div>
+        <div style="font-size:9px;color:var(--w20);text-transform:uppercase;letter-spacing:1px">Stop Loss<div style="font-size:12px;color:var(--r);margin-top:3px;font-weight:500">\$${s.stop.toFixed(4)}</div></div>
+      </div>
+      <div style="margin-top:8px;font-size:9px;color:var(--w20)">R/R: ${((s.target - s.entry) / (s.entry - s.stop)).toFixed(2)}x | Potential: ${(((s.target - s.entry) / s.entry) * 100).toFixed(1)}%</div>
+    </div>`;
+  }).join('')}`;
+}
+
+async function rCS(m) {
+  const sorted = [...md].sort((a, b) => Math.abs(b.price_change_percentage_24h_in_currency) - Math.abs(a.price_change_percentage_24h_in_currency));
+  
+  // Get cashtag metrics from API
+  const symbols = sorted.map(c => c.symbol).join(',');
+  const cashtagData = await API.cashtags(symbols);
+  
+  // Check if data is available
+  if (!cashtagData || cashtagData.status === 'error' || !cashtagData.data || cashtagData.data.length === 0) {
+    const errorMsg = cashtagData?.message || 'Twitter API not configured or no data available';
+    m.innerHTML = `<div class="st stg s1">Trending Cashtags</div>
+    <div class="stg s2" style="margin-bottom:18px;font-size:11px;color:var(--w45);line-height:1.6">Real-time $CASHTAG tracking from Twitter API.</div>
+    <div style="text-align:center;padding:40px;color:var(--w45)">${errorMsg}</div>
+    <div style="text-align:center;padding:10px 40px;font-size:9px;color:var(--w20)">Check Twitter Bearer Token in .env file or wait for API access approval.</div>`;
+    return;
+  }
+  
+  // Create a map for quick lookup
+  const metricsMap = {};
+  cashtagData.data.forEach(item => {
+    metricsMap[item.symbol.toLowerCase()] = item;
+  });
+  
+  // Calculate totals
+  const allMentions = cashtagData.data.map(d => d.mentions);
+  const allSentiments = cashtagData.data.map(d => d.sentiment);
+  const totalMentions = allMentions.reduce((a, b) => a + b, 0);
+  const avgSentiment = (allSentiments.reduce((a, b) => a + b, 0) / allSentiments.length).toFixed(0);
+  
+  // Find fastest growing
+  const fastestGrowing = [...cashtagData.data].sort((a, b) => {
+    const aVal = parseInt(a.velocity.replace(/[+%]/g, ''));
+    const bVal = parseInt(b.velocity.replace(/[+%]/g, ''));
+    return bVal - aVal;
+  })[0];
+  
+  m.innerHTML = `<div class="st stg s1">Trending Cashtags</div>
+  <div class="stg s2" style="margin-bottom:18px;font-size:11px;color:var(--w45);line-height:1.6">Real-time $CASHTAG tracking from Twitter API. Mentions, sentiment, velocity analysis.</div>
+  <div class="sr stg s2" style="margin-bottom:20px">
+    <div class="sc"><div class="scl">Total Mentions (24h)</div><div class="scv">${totalMentions.toLocaleString()}</div></div>
+    <div class="sc"><div class="scl">Avg Sentiment</div><div class="scv" style="color:var(--g)">${avgSentiment}/100</div></div>
+    <div class="sc"><div class="scl">Most Discussed</div><div class="scv" style="color:var(--g)">$${sorted[0]?.symbol.toUpperCase()}</div></div>
+    <div class="sc"><div class="scl">Fastest Growing</div><div class="scv" style="color:var(--c)">${fastestGrowing?.velocity || 'N/A'}</div></div>
+  </div>
+  ${sorted.map((c, i) => {
+    const metrics = metricsMap[c.symbol];
+    if (!metrics) return '';
+    
+    const ment = metrics.mentions;
+    const sent = metrics.sentiment;
+    const vel = metrics.velocity;
+    const sc = sent > 60 ? 'var(--g)' : sent < 40 ? 'var(--r)' : 'var(--a)';
+    return `<div class="cshtag-card stg" style="animation-delay:${.1 + i * .06}s" onclick="qA('Full cashtag analysis $${c.symbol.toUpperCase()}')">
+      <div><div class="cshtag-sym">$${c.symbol.toUpperCase()}</div><div class="cshtag-name" title="${c.name}">${c.name}</div></div>
+      <div><div class="cshtag-m">Mentions</div><div class="cshtag-v">${ment.toLocaleString()}</div></div>
+      <div><div class="cshtag-m">Velocity</div><div class="cshtag-v" style="color:${vel.startsWith('+') ? 'var(--g)' : 'var(--r)'}">${vel}</div></div>
+      <div><div class="cshtag-m">Sentiment</div><div class="cshtag-v" style="color:${sc}">${sent}/100</div><div class="sent-bar"><div class="sent-fill" style="width:${sent}%;background:${sc}"></div></div></div>
+      <div style="text-align:right"><div style="font-size:14px;font-weight:500;color:#fff">${fmt(c.current_price)}</div><div style="font-size:11px;margin-top:2px;color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</div></div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ── Agent ──
+async function send() {
+  const inp = document.getElementById('aI'), txt = inp.value.trim(); if (!txt) return; inp.value = '';
+  addMsg(txt, 'u'); showT();
+
+  const tm = txt.match(/\$([A-Za-z]{2,10})/), tk = tm ? tm[1].toLowerCase() : null;
+  const cid = tickerToId(tk);
+  let cd = cid ? await API.coin(cid) : null;
+  let fg = await API.fng();
+
+  let ctx = '';
+  if (cd) { const m = cd.market_data; ctx = `\nDATA $${cd.symbol.toUpperCase()} (${cd.name}): Price $${m.current_price?.usd}, 1h ${m.price_change_percentage_1h_in_currency?.usd?.toFixed(2)}%, 24h ${m.price_change_percentage_24h?.toFixed(2)}%, 7d ${m.price_change_percentage_7d?.toFixed(2)}%, Vol $${(m.total_volume?.usd / 1e9).toFixed(2)}B, MCap $${(m.market_cap?.usd / 1e9).toFixed(2)}B, 24h Range $${m.low_24h?.usd}-$${m.high_24h?.usd}, ATH $${m.ath?.usd} (${m.ath_change_percentage?.usd?.toFixed(1)}%), Vol/MCap ${((m.total_volume?.usd / m.market_cap?.usd) * 100).toFixed(2)}%`; }
+  if (fg) ctx += `\nFear&Greed: ${fg.value} (${fg.value_classification})`;
+
+  const reply = await API.chat(txt, ctx);
+  hideT();
+  if (reply) { addMsg(reply, 'a'); }
+  else {
+    const sym = tk ? tk.toUpperCase() : '';
+    const coin = cd?.market_data || md.find(c => c.symbol === tk);
+    if (coin) { const p = coin.current_price?.usd || coin.current_price; const ch = coin.price_change_percentage_24h || coin.price_change_percentage_24h_in_currency; const v = ch > 3 ? 'BULLISH' : ch < -3 ? 'BEARISH' : ch > 0 ? 'NEUTRAL' : 'CAUTION'; addMsg(`**${v}** — $${sym}\n\nPrice: ${fmt(p)} (${pct(ch)} 24h)\nVolume: ${fmt(coin.total_volume?.usd || coin.total_volume)}\nMCap: ${fmt(coin.market_cap?.usd || coin.market_cap)}${fg ? '\nFear & Greed: ' + fg.value + ' (' + fg.value_classification + ')' : ''}\n\n◆ Full AI analysis available via DeepSeek\n◆ Production: $CASHTAG velocity + sentiment + on-chain DeFi`, 'a'); }
+    else addMsg(`${txt}\n\n◆ AI agent ready for analysis\n◆ Available: $BTC $ETH $SOL $DOGE $XRP $ADA $TON $AVAX\n◆ Try: "Analysis $BTC" or "Deep dive $ETH"`, 'a');
+  }
+  API.addLocalLog('chat', { preview: txt.slice(0, 50) });
+}
+
+function qA(t) {
+  // On mobile, open chat first
+  if (window.innerWidth <= 768) {
+    const ag = document.querySelector('.ag');
+    if (!ag.classList.contains('mob-open')) {
+      toggleChat();
+      // Wait for animation to complete before sending
+      setTimeout(() => {
+        document.getElementById('aI').value = t;
+        send();
+      }, 400);
+      return;
+    }
+  } else {
+    // On desktop, open agent panel if hidden
+    const appDash = document.querySelector('.app-dash');
+    if (appDash.classList.contains('hide-agent')) {
+      toggleAgent();
+      // Wait for animation to complete before sending
+      setTimeout(() => {
+        document.getElementById('aI').value = t;
+        send();
+      }, 400);
+      return;
+    }
+  }
+  document.getElementById('aI').value = t;
+  send();
+}
+
+function addMsg(t, r) {
+  const c = document.getElementById('aM'), d = document.createElement('div'); d.className = `msg msg-${r === 'a' ? 'a' : 'u'}`;
+  let f = t; if (r === 'a') f = t.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff">$1</strong>').replace(/◆/g, '<span style="color:var(--g);font-size:8px">◆</span>').replace(/(\$[A-Z]{2,10})/g, '<span class="sigtk" onclick="qA(\'Analysis $1\')">$1</span>').replace(/\n/g, '<br>');
+  d.innerHTML = `<div class="mb">${f}</div><div class="mm">${r === 'a' ? 'PULSΞ Agent' : 'You'} · ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })} UTC</div>`;
+  c.appendChild(d); 
+  setTimeout(() => { c.scrollTop = c.scrollHeight; }, 0);
+  setTimeout(() => { c.scrollTop = c.scrollHeight; }, 100);
+}
+function showT() { const c = document.getElementById('aM'), d = document.createElement('div'); d.className = 'msg msg-a'; d.id = 'tI'; d.innerHTML = '<div class="td"><span></span><span></span><span></span></div>'; c.appendChild(d); setTimeout(() => { c.scrollTop = c.scrollHeight; }, 0); }
+function hideT() { const t = document.getElementById('tI'); if (t) { t.remove(); setTimeout(() => { const c = document.getElementById('aM'); c.scrollTop = c.scrollHeight; }, 0); } }
+
+// Auto-refresh market data every 30 minutes
+loadMarket(); 
+loadTopCoins(); // Load top 100 coins for Top Mover widget
+setInterval(loadMarket, 1800000); // 30 min (reduced to save Twitter API costs)
+setInterval(updateRefreshTimers, 1000); // Update timer display every second
+</script>
+</body>
+</html>

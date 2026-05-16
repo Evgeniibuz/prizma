@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PULSΞ — Agents Lab</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .app-ag{position:relative;z-index:10;width:100%;height:100%;display:grid;grid-template-rows:56px 1fr;overflow:hidden}
+    .cnt-ag{display:grid;grid-template-columns:1fr 420px;height:100%;overflow:hidden}
+    .orc{overflow-y:auto;padding:28px}
+    .pt{font-family:var(--fs);font-weight:300;font-size:28px;color:var(--w70);margin-bottom:6px}
+    .ps{font-size:11px;color:var(--w20);letter-spacing:1px;margin-bottom:28px;line-height:1.6}
+    .til{font-size:8px;letter-spacing:3px;color:var(--w20);text-transform:uppercase;margin-bottom:10px}
+    .tia{width:100%;min-height:80px;padding:14px 16px;border:1px solid var(--w8);border-radius:2px;background:rgba(0,0,0,.65);color:#fff;font-family:var(--fm);font-size:12px;line-height:1.7;resize:vertical;outline:none;transition:border-color .3s}.tia::placeholder{color:var(--w20)}.tia:focus{border-color:var(--w20)}
+    .tac{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap}
+    .btn-l{height:40px;padding:0 24px;border:1px solid rgba(0,255,163,.3);color:var(--g);background:rgba(0,255,163,.04);font-size:11px;letter-spacing:3px}.btn-l:hover{background:rgba(0,255,163,.1);border-color:rgba(0,255,163,.5)}
+    .pre{padding:5px 12px;border:1px solid var(--w6);border-radius:2px;background:none;color:var(--w20);font-family:var(--fm);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all .2s}.pre:hover{color:var(--w70);border-color:var(--w12)}
+    .trl{font-size:8px;letter-spacing:3px;color:var(--w20);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}.trl .cn{color:var(--c);font-size:10px}
+    /* Master */
+    .ma{border:1px solid rgba(0,212,255,.2);border-radius:2px;padding:16px 18px;background:rgba(0,212,255,.08);margin-bottom:4px}
+    .mah{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+    .man{font-size:11px;letter-spacing:2px;color:var(--c);text-transform:uppercase;display:flex;align-items:center;gap:8px}.man::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c)}
+    .mas{font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+    .ms-t{color:var(--a);background:rgba(255,187,0,.08);border:1px solid rgba(255,187,0,.15)}
+    .ms-d{color:var(--g);background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.15)}
+    .mat{font-size:11px;color:var(--w45);line-height:1.6}
+    .con{width:1px;height:20px;background:var(--w8);margin-left:30px}
+    .sas{display:flex;flex-direction:column;gap:4px;margin-left:30px;padding-left:16px;border-left:1px solid var(--w8)}
+    .sa{border:1px solid var(--w8);border-radius:2px;padding:14px 16px;background:rgba(0,0,0,.6);transition:border-color .3s}.sa:hover{border-color:var(--w20)}
+    .sah{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px}
+    .san{font-size:10px;letter-spacing:1.5px;color:var(--w70);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+    .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}.dot.gr{background:var(--g);box-shadow:0 0 6px var(--g)}.dot.am{background:var(--a);box-shadow:0 0 6px var(--a)}.dot.bl{background:var(--b);box-shadow:0 0 6px var(--b)}.dot.rd{background:var(--r);box-shadow:0 0 6px var(--r)}.dot.cy{background:var(--c);box-shadow:0 0 6px var(--c)}
+    .sat{font-size:10px;color:var(--w45);line-height:1.6;margin-bottom:6px}
+    .sar{font-size:10px;color:var(--w70);line-height:1.6;padding:8px 10px;background:var(--w3);border-radius:2px;border-left:2px solid var(--g)}
+    .prw{margin-top:16px}.prb{height:2px;background:var(--w6);border-radius:1px;overflow:hidden}.prf{height:100%;background:var(--c);transition:width .6s cubic-bezier(.16,1,.3,1)}.prt{font-size:8px;letter-spacing:2px;color:var(--w20);margin-top:6px;text-transform:uppercase;display:flex;justify-content:space-between}
+    .syn{margin-top:20px;border:1px solid rgba(0,255,163,.15);border-radius:2px;padding:18px;background:rgba(0,255,163,.08);display:none}.syn.show{display:block;animation:fI .6s ease}
+    .synt{font-size:9px;letter-spacing:3px;color:var(--g);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}.synt::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g)}
+    .synb{font-size:11px;color:var(--w70);line-height:1.8}
+    /* Tools panel */
+    .tp{border-left:1px solid var(--w8);background:rgba(0,0,0,.75);display:flex;flex-direction:column;overflow:hidden}
+    .tts{display:flex;border-bottom:1px solid var(--w8)}
+    .ttb{flex:1;padding:12px;font-size:9px;letter-spacing:2px;color:var(--w20);text-transform:uppercase;text-align:center;cursor:pointer;transition:all .2s;border:none;background:none;font-family:var(--fm);border-bottom:2px solid transparent}.ttb:hover{color:var(--w45)}.ttb.ac{color:var(--c);border-bottom-color:var(--c)}
+    .ttc{flex:1;overflow-y:auto;padding:18px}
+    .tab-p{display:none}.tab-p.ac{display:block}
+    .ccv{width:100%;height:200px;border:1px solid var(--w6);border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:12px;position:relative;overflow:hidden}
+    .cbr{position:absolute;bottom:0;background:var(--g);border-radius:1px 1px 0 0;transition:height .4s cubic-bezier(.16,1,.3,1),opacity .2s}.cbr.neg{background:var(--r)}.cbr:hover{opacity:.8;cursor:pointer}
+    .cbar-wrap{position:absolute;bottom:0}.cbar-wrap:hover .cbar-tip{display:block}
+    .cbar-tip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:8px;padding:8px 12px;background:rgba(255,255,255,.98);border:1px solid var(--w20);border-radius:2px;white-space:nowrap;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5);animation:fI .2s ease}.cbar-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(255,255,255,.98)}
+    .cbar-tip-sym{font-size:10px;font-weight:500;color:var(--g);letter-spacing:1px;margin-bottom:4px}
+    .cbar-tip-val{font-size:11px;color:#000;font-weight:500}
+    .csel{width:100%;height:38px;padding:0 12px;border:1px solid var(--w8);border-radius:2px;background:rgba(0,0,0,.3);color:#fff;font-family:var(--fm);font-size:11px;outline:none;margin-bottom:12px;appearance:none}.csel option{background:#0a0a0e}
+    .cap{padding:10px 12px;border:1px solid var(--w6);border-radius:2px;font-size:10px;color:var(--w45);line-height:1.5;margin-bottom:6px}
+    .hli{padding:10px 0;border-bottom:1px solid var(--w4);font-size:10px;color:var(--w45);line-height:1.5}
+    .sg{margin-bottom:20px}.sgl{font-size:8px;letter-spacing:2px;color:var(--w20);text-transform:uppercase;margin-bottom:8px}
+    .sgr{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--w4)}.sgn{font-size:11px;color:var(--w45)}
+    .tgl{width:36px;height:18px;border-radius:9px;background:var(--w8);cursor:pointer;position:relative;transition:background .3s;border:none;flex-shrink:0}.tgl.on{background:rgba(0,255,163,.3)}.tgl::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .3s}.tgl.on::after{transform:translateX(18px)}
+    @media(max-width:768px){
+      .orc{padding:16px 12px}
+      .sas{margin-left:12px;padding-left:10px}
+      .pt{font-size:20px}
+      .tac{flex-wrap:wrap}
+      .btn-l{height:36px;font-size:10px;padding:0 16px}
+    }
+  </style>
+</head>
+<body>
+<div id="ubg" class="blur-sm"><div data-us-project="lvQHbwURkWLN3CcEaMHS" style="width:1440px;height:900px"></div></div>
+<div class="overlay"></div>
+<div class="app-ag">
+  <header class="tb">
+    <div class="tb-l"><a class="tb-logo" href="dashboard">PULSΞ</a><div class="tb-cr">Dashboard / <span>Agents Lab</span></div></div>
+    <div class="tb-r">
+      <div class="tb-t" id="clock"></div>
+      <a class="btn btn-n" href="dashboard">Dashboard</a>
+    </div>
+  </header>
+  <div class="cnt-ag">
+    <div class="orc">
+      <div class="pt">Agents Lab</div>
+      <div class="ps">Give a complex task — the Master Agent will decompose it, spawn sub-agents, and synthesize a final report.</div>
+      <div style="margin-bottom:28px">
+        <div class="til">Mission Briefing</div>
+        <textarea class="tia" id="tIn" placeholder="Example: Full $SOL analysis — momentum, $CASHTAG velocity, on-chain TVL, 7-day outlook..."></textarea>
+        <div class="tac">
+          <button class="btn btn-l" onclick="launch()">▶ Launch Agents</button>
+          <button class="pre" onclick="setP('deep')">Deep Analysis</button>
+          <button class="pre" onclick="setP('compare')">Compare</button>
+          <button class="pre" onclick="setP('cashtag')">$Cashtag Scan</button>
+          <button class="pre" onclick="setP('defi')">DeFi Pulse</button>
+        </div>
+      </div>
+      <div id="trS" style="display:none">
+        <div class="trl">Agent Network <span class="cn" id="aCnt">0</span></div>
+        <div id="aTree"></div>
+        <div class="prw" id="prW" style="display:none"><div class="prb"><div class="prf" id="prF" style="width:0%"></div></div><div class="prt"><span id="prL">Initializing...</span><span id="prP">0%</span></div></div>
+        <div class="syn" id="synD"><div class="synt">Final Synthesis</div><div class="synb" id="synB"></div></div>
+      </div>
+    </div>
+    <div class="tp">
+      <div class="tts">
+        <button class="ttb ac" onclick="stab('ch',this)">Charts</button>
+        <button class="ttb" onclick="stab('hi',this)">History</button>
+        <button class="ttb" onclick="stab('se',this)">Settings</button>
+      </div>
+      <div class="ttc">
+        <div class="tab-p ac" id="tCh">
+          <div class="til">Quick Chart</div>
+          <select class="csel" id="cAs" onchange="rCh()"><option value="perf">24h Performance</option><option value="vol">Volume</option><option value="mcap">Market Cap</option></select>
+          <div class="ccv" id="cCv"></div>
+          <div style="font-size:9px;color:var(--w20);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px">Live CoinGecko data · Auto-refresh 10min</div>
+          <div class="til" style="margin-top:16px">Agent Capabilities</div>
+          <div class="cap"><span style="color:var(--c)">◆</span> Market Analysis — price, volume, momentum</div>
+          <div class="cap"><span style="color:var(--a)">◆</span> $Cashtag Scanner — mention velocity, KOL activity</div>
+          <div class="cap"><span style="color:var(--g)">◆</span> On-Chain & DeFi — TVL, DEX volume, stablecoin flows</div>
+          <div class="cap"><span style="color:var(--r)">◆</span> Competitive Analysis — ecosystem, rivals</div>
+        </div>
+        <div class="tab-p" id="tHi"><div class="til">Mission History</div><div id="hList" style="margin-top:10px"></div></div>
+        <div class="tab-p" id="tSe">
+          <div class="sg"><div class="sgl">Agent Config</div>
+            <div class="sgr"><span class="sgn">Max Sub-Agents</span><span style="font-size:11px;color:#fff">5</span></div>
+            <div class="sgr"><span class="sgn">Auto-synthesis</span><button class="tgl on" onclick="this.classList.toggle('on')"></button></div>
+            <div class="sgr"><span class="sgn">Parallel Execution</span><button class="tgl on" onclick="this.classList.toggle('on')"></button></div>
+          </div>
+          <div class="sg"><div class="sgl">Data Sources</div>
+            <div class="sgr"><span class="sgn">CoinGecko API</span><button class="tgl on" onclick="this.classList.toggle('on')"></button></div>
+            <div class="sgr"><span class="sgn">X / Twitter API</span><button class="tgl" onclick="this.classList.toggle('on')"></button></div>
+            <div class="sgr"><span class="sgn">DeFiLlama</span><button class="tgl" onclick="this.classList.toggle('on')"></button></div>
+          </div>
+          <div class="sg"><div class="sgl">Notifications</div>
+            <div class="sgr"><span class="sgn">Agent Complete</span><button class="tgl on" onclick="this.classList.toggle('on')"></button></div>
+            <div class="sgr"><span class="sgn">$Cashtag Spikes</span><button class="tgl" onclick="this.classList.toggle('on')"></button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script>
+initUnicorn();
+startClock(document.getElementById('clock'));
+
+function stab(id, el) {
+  document.querySelectorAll('.ttb').forEach(t => t.classList.remove('ac'));
+  el.classList.add('ac');
+  ['tCh', 'tHi', 'tSe'].forEach(x => document.getElementById(x).classList.remove('ac'));
+  document.getElementById(id === 'ch' ? 'tCh' : id === 'hi' ? 'tHi' : 'tSe').classList.add('ac');
+  if (id === 'hi') rH();
+  if (id === 'ch') setTimeout(rCh, 100); // Redraw chart when switching to Charts tab
+}
+
+const MD = [{ s: 'BTC', c: 2.18, v: 38.2, m: 1937 }, { s: 'ETH', c: 1.87, v: 14.8, m: 329 }, { s: 'SOL', c: 4.52, v: 3.4, m: 95.6 }, { s: 'XRP', c: -.74, v: 4.2, m: 146 }, { s: 'DOGE', c: 3.21, v: 1.8, m: 38.2 }, { s: 'ADA', c: 1.15, v: .68, m: 27.8 }, { s: 'TON', c: -1.32, v: .32, m: 12.5 }, { s: 'AVAX', c: 2.67, v: .41, m: 9.9 }];
+let marketData = [];
+
+async function loadChartData() {
+  try {
+    const data = await API.market();
+    if (data && data.length > 0) {
+      marketData = data.map(coin => ({
+        s: coin.symbol.toUpperCase(),
+        c: coin.price_change_percentage_24h_in_currency || 0,
+        v: (coin.total_volume || 0) / 1e9, // Convert to billions
+        m: (coin.market_cap || 0) / 1e9 // Convert to billions
+      }));
+      rCh(); // Refresh chart
+    }
+  } catch (e) {
+    console.error('Failed to load chart data:', e);
+    marketData = MD; // Fallback to mock data
+  }
+}
+
+function rCh() {
+  const t = document.getElementById('cAs').value, cv = document.getElementById('cCv'); cv.innerHTML = '';
+  const md = marketData.length > 0 ? marketData : MD;
+  let d, mx, sf, label;
+  if (t === 'perf') { d = md.map(x => ({ s: x.s, v: x.c })); mx = Math.max(...d.map(x => Math.abs(x.v))); sf = '%'; label = '24h Change'; }
+  else if (t === 'vol') { d = md.map(x => ({ s: x.s, v: x.v })); mx = Math.max(...d.map(x => x.v)); sf = 'B'; label = 'Volume'; }
+  else { d = md.map(x => ({ s: x.s, v: x.m })); mx = Math.max(...d.map(x => x.v)); sf = 'B'; label = 'Market Cap'; }
+  const w = cv.offsetWidth, bw = Math.min(30, (w - d.length * 8) / d.length);
+  d.forEach((x, i) => {
+    const lx = 20 + i * ((w - 40) / d.length), neg = x.v < 0, bh = t === 'perf' ? Math.abs(x.v) / mx * 140 : x.v / mx * 160;
+    
+    // Wrapper for tooltip
+    const wrap = document.createElement('div'); wrap.className = 'cbar-wrap'; wrap.style.cssText = `left:${lx}px;width:${bw}px;height:100%`;
+    
+    // Tooltip
+    const tip = document.createElement('div'); tip.className = 'cbar-tip';
+    tip.innerHTML = `<div class="cbar-tip-sym">$${x.s}</div><div class="cbar-tip-val">${label}: ${(neg ? '' : '+') + x.v.toFixed(2)}${sf}</div>`;
+    wrap.appendChild(tip);
+    
+    // Bar
+    const b = document.createElement('div'); b.className = 'cbr' + (neg ? ' neg' : ''); b.style.cssText = `left:0;width:${bw}px;height:0`; setTimeout(() => b.style.height = bh + 'px', 50 + i * 60); wrap.appendChild(b);
+    cv.appendChild(wrap);
+    
+    // Label with better visibility
+    const l = document.createElement('div'); l.style.cssText = `position:absolute;bottom:4px;left:${lx}px;width:${bw}px;font-size:8px;font-weight:600;color:#fff;text-align:center;background:rgba(0,0,0,.9);padding:2px 4px;border-radius:2px`; l.textContent = x.s; cv.appendChild(l);
+    
+    // Value with high contrast background
+    const v = document.createElement('div'); v.style.cssText = `position:absolute;bottom:${bh + 16}px;left:${lx - 4}px;width:${bw + 8}px;font-size:8px;font-weight:600;color:#fff;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;background:${neg ? 'rgba(255,68,102,.95)' : 'rgba(0,255,163,.95)'};padding:3px 5px;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.6)`; v.textContent = (neg ? '' : '+') + x.v.toFixed(1) + sf; setTimeout(() => v.style.opacity = '1', 300 + i * 60); cv.appendChild(v);
+  });
+}
+loadChartData(); // Load data on page load
+setInterval(loadChartData, 600000); // Auto-refresh every 10 minutes
+setTimeout(rCh, 100);
+
+function setP(t) {
+  const p = { deep: 'Full analysis of $SOL: momentum, $CASHTAG mentions, S/R levels, 72h forecast.', compare: 'Compare $ETH vs $SOL: 7-day perf, volumes, DeFi TVL, $CASHTAG velocity. Better mid-term play?', cashtag: '$CASHTAG Scan: trending tickers on X, fastest growing mentions, cross-ref with price action.', defi: 'DeFi Pulse: top L1/L2 ecosystems by TVL change in 7 days, DEX volume trends, stablecoin flows.' };
+  document.getElementById('tIn').value = p[t] || ''; document.getElementById('tIn').focus();
+}
+
+const AGENTS = [
+  { n: 'Market Analyst', c: 'gr', tasks: ['Price & momentum', 'Technical indicators', 'Key levels'] },
+  { n: '$Cashtag Scanner', c: 'am', tasks: ['Mention velocity', 'Sentiment', 'KOL activity'] },
+  { n: 'On-Chain & DeFi', c: 'cy', tasks: ['TVL trends', 'DEX volume', 'Stablecoin flows'] },
+];
+
+let running = false;
+async function launch() {
+  const task = document.getElementById('tIn').value.trim(); if (!task || running) return; running = true;
+  document.getElementById('trS').style.display = 'block'; document.getElementById('prW').style.display = 'block'; document.getElementById('synD').className = 'syn';
+  const tree = document.getElementById('aTree'); tree.innerHTML = ''; document.getElementById('aCnt').textContent = (AGENTS.length + 1) + ' agents';
+  tree.innerHTML = `<div class="ma"><div class="mah"><div class="man">Master Orchestrator</div><div class="mas ms-t" id="mSt">Thinking</div></div><div class="mat">${task.slice(0, 120)}${task.length > 120 ? '...' : ''}</div></div><div class="con"></div><div class="sas" id="subA"></div>`;
+  uP(5, 'Decomposing task...'); await dl(800);
+
+  // Try real API mission
+  const realSynth = API.mission(task, marketData); // fire async
+
+  const sc = document.getElementById('subA');
+  const results = [];
+  for (let i = 0; i < AGENTS.length; i++) {
+    const a = AGENTS[i], d = document.createElement('div'); d.className = 'sa'; d.style.animation = 'fI .4s ease';
+    d.innerHTML = `<div class="sah"><div class="san"><span class="dot ${a.c}"></span>${a.n}</div><div class="mas ms-t" id="st-${i}">Working</div></div><div class="sat">${a.tasks[Math.floor(Math.random() * a.tasks.length)]}</div><div class="sar" id="rs-${i}" style="display:none"></div>`;
+    sc.appendChild(d); uP(10 + i * 18, a.n + ' deployed...'); await dl(600 + Math.random() * 400);
+  }
+
+  for (let i = 0; i < AGENTS.length; i++) {
+    await dl(800 + Math.random() * 1200);
+    const mr = [
+      `Price uptrend. Volume +${(Math.random() * 200 + 50).toFixed(0)}% vs avg. RSI: ${(Math.random() * 30 + 50).toFixed(0)}. Support holding. Momentum ${Math.random() > .5 ? 'accelerating' : 'stable'}.`,
+      `$CASHTAG mentions: ${(Math.random() * 5000 + 1000).toFixed(0)} in 24h. Velocity ${Math.random() > .5 ? 'increasing' : 'stable'}. ${(Math.random() * 10 + 3).toFixed(0)} KOL posts. Sentiment: ${(Math.random() * 40 + 50).toFixed(0)}/100.`,
+      `TVL ${Math.random() > .5 ? '+' : '-'}${(Math.random() * 12 + 1).toFixed(1)}% in 7d. DEX volume ${Math.random() > .5 ? 'rising' : 'flat'}. Stablecoin inflow: ${(Math.random() * 400 + 100).toFixed(0)}M. Active addresses ${Math.random() > .5 ? '+' : '-'}${(Math.random() * 20).toFixed(0)}%.`,
+    ];
+    const r = mr[i]; results.push({ agent: AGENTS[i].n, result: r });
+    document.getElementById('st-' + i).className = 'mas ms-d'; document.getElementById('st-' + i).textContent = 'Done';
+    const re = document.getElementById('rs-' + i); re.style.display = 'block'; re.textContent = r;
+    uP(25 + i * 18, AGENTS[i].n + ' complete');
+  }
+
+  uP(90, 'Synthesizing...'); document.getElementById('mSt').textContent = 'Synthesizing'; await dl(1000);
+
+  // Check if real API returned
+  let synText = await realSynth;
+  if (synText) {
+    document.getElementById('synB').innerHTML = synText.replace(/\n/g, '<br>').replace(/(\$[A-Z]{2,10})/g, '<span style="color:var(--g)">$1</span>').replace(/◆/g, '<span style="color:var(--g)">◆</span>');
+  } else {
+    const vd = Math.random() > .5 ? 'BULLISH' : 'CAUTION', cf = (Math.random() * 30 + 60).toFixed(0);
+    document.getElementById('synB').innerHTML = `<strong style="color:${vd === 'BULLISH' ? 'var(--g)' : 'var(--a)'}">${vd}</strong> — Confidence: ${cf}%<br><br>${results.map(r => `<span style="color:var(--c)">◆ ${r.agent}:</span> ${r.result}`).join('<br><br>')}<br><br><strong style="color:#fff">Summary:</strong> ${vd === 'BULLISH' ? 'Strong structure with upside potential. Consider position with tight stops.' : 'Mixed signals. Wait for confirmation or reduce exposure.'}`;
+  }
+
+  document.getElementById('synD').className = 'syn show'; document.getElementById('mSt').className = 'mas ms-d'; document.getElementById('mSt').textContent = 'Complete'; uP(100, 'Mission complete');
+  const h = JSON.parse(localStorage.getItem('pulse_missions') || '[]');
+  h.unshift({ task: task.slice(0, 100), agents: AGENTS.length + 1, time: new Date().toISOString() });
+  localStorage.setItem('pulse_missions', JSON.stringify(h.slice(0, 20)));
+  running = false;
+}
+
+function uP(p, l) { document.getElementById('prF').style.width = p + '%'; document.getElementById('prP').textContent = p + '%'; document.getElementById('prL').textContent = l; }
+function dl(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function rH() {
+  const h = JSON.parse(localStorage.getItem('pulse_missions') || '[]'), el = document.getElementById('hList');
+  if (!h.length) { el.innerHTML = '<div style="font-size:11px;color:var(--w20)">No missions yet.</div>'; return; }
+  el.innerHTML = h.map(x => `<div class="hli"><div style="font-size:8px;color:var(--w20)">${new Date(x.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div><div style="margin-top:4px;color:var(--w45)">${x.task}...</div><div style="margin-top:2px;font-size:9px;color:var(--w20)">${x.agents} agents</div></div>`).join('');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+# Production-leaning docker-compose. For dev (hot reload + bind mounts of
+# the source tree), use docker-compose.override.yml — Docker Compose merges
+# both files automatically.
+
+services:
+  # ── PostgreSQL ──────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulse_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pulse_db}
+      POSTGRES_USER: ${POSTGRES_USER:-pulse_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulse_dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pulse_user} -d ${POSTGRES_DB:-pulse_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pulse-network
+
+  # ── Redis ───────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: pulse_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - pulse-network
+
+  # ── Backend (FastAPI) ───────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulse_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pulse_user}:${POSTGRES_PASSWORD:-pulse_dev_password}@postgres:5432/${POSTGRES_DB:-pulse_db}
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "${PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pulse-network
+
+  # ── pgAdmin (optional; `docker compose --profile tools up`) ─────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pulse_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - pulse-network
+    profiles:
+      - tools
+
+networks:
+  pulse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
