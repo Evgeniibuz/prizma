@@ -12,6 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=20260221_1">
   <style>
+    /* Landing-only: enable page scroll (the global style.css locks it for the app shell). */
+    html,body{height:auto;min-height:100%;overflow-y:auto;overflow-x:hidden}
+
     .cnt{position:relative;z-index:10;width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:80px 24px 120px}
     .logo{font-family:var(--fd);font-weight:800;font-size:72px;letter-spacing:18px;color:#fff;text-indent:18px;margin-bottom:20px;opacity:0;animation:rU 1.2s cubic-bezier(.16,1,.3,1) .6s forwards}
     .tag{font-family:var(--fs);font-weight:300;font-size:18px;letter-spacing:4px;color:var(--w45);text-transform:uppercase;margin-bottom:12px;opacity:0;animation:rU 1.2s cubic-bezier(.16,1,.3,1) .9s forwards}
