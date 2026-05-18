@@ -88,7 +88,7 @@
   </style>
 </head>
 <body>
-<div id="ubg" class="blur"><div data-us-project="lvQHbwURkWLN3CcEaMHS" style="width:1440px;height:900px"></div></div>
+<div id="bg" class="blur"></div>
 <div class="overlay"></div>
 <div class="app-dash">
   <!-- Topbar -->
@@ -100,7 +100,8 @@
     <div class="tb-r">
       <div class="tb-t" id="clock"></div>
       <div class="tb-t" id="userDisplay" style="margin-right:16px"></div>
-      <a class="btn btn-n" href="https://x.com/CashtagAgent" target="_blank">Twitter</a>
+      <a class="btn btn-n" href="https://x.com/pulselabs_hq" target="_blank" rel="noopener">Twitter</a>
+      <a class="btn btn-n" href="https://t.me/pulseofficialchannel" target="_blank" rel="noopener">Telegram</a>
       <a class="btn btn-n" href="agents">Agents Lab</a>
       <button class="btn btn-n" onclick="handleLogout()" style="border-color:rgba(255,68,102,.3);color:var(--r)">
         <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor">
@@ -184,6 +185,7 @@
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script src="utils.js"></script>
+<script src="bg.js?v=20260518_1"></script>
 <script>
 // Auth check - redirect to login if no token
 const token = localStorage.getItem('pulse_token');
@@ -203,11 +205,11 @@ if (username) {
   }
 }
 
-initUnicorn();
+initBackground();
 startClock(document.getElementById('clock'));
 
 let md = [], mdTop = [], cv = 'overview', lastUpdate = Date.now(), sortBy = 'market_cap', sortDir = 'desc', agentVisible = true;
-let topCount = (() => { try { const v = parseInt(localStorage.getItem('pulse_top_count'), 10); return (v >= 5 && v <= 30) ? v : 15; } catch(e) { return 15; } })();
+let topCount = (() => { try { const v = parseInt(localStorage.getItem('pulse_top_count'), 10); return (v >= 5 && v <= 100) ? v : 15; } catch(e) { return 15; } })();
 
 async function loadMarket() {
   md = await API.market();
@@ -301,7 +303,7 @@ function rOV(m) {
   const n = Math.min(topCount, data.length);
   m.innerHTML = `<div class="st stg s1">Market Overview</div>
   <div class="sr stg s2"><div class="sc"><div class="scl">Total Market Cap</div><div class="scv">${fmt(tc)}</div></div><div class="sc"><div class="scl">24h Volume</div><div class="scv">${fmt(tv)}</div></div><div class="sc"><div class="scl">Avg 24h</div><div class="scv" style="color:${pc(ac)}">${pct(ac)}</div></div><div class="sc"><div class="scl">Top Mover</div><div class="scv">${tp ? tp.symbol.toUpperCase() : '—'}</div><div class="scs" style="color:${pc(tp?.price_change_percentage_24h_in_currency)}">${tp ? pct(tp.price_change_percentage_24h_in_currency) : '—'}</div></div></div>
-  <div class="tw stg s3"><div class="th" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div class="tt">Top Assets <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div><div class="top-slider-wrap" style="display:flex;align-items:center;gap:10px;font-family:var(--fm);font-size:9px;letter-spacing:1.5px;color:var(--w45);text-transform:uppercase"><span>Show</span><input id="topRange" type="range" min="5" max="30" value="${topCount}" step="1" oninput="setTopCount(this.value)" style="width:120px;accent-color:var(--g);cursor:pointer"><span id="topRangeVal" style="color:var(--g);min-width:18px;text-align:right">${topCount}</span></div></div>
+  <div class="tw stg s3"><div class="th" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div class="tt">Top Assets <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div><div class="top-slider-wrap" style="display:flex;align-items:center;gap:10px;font-family:var(--fm);font-size:9px;letter-spacing:1.5px;color:var(--w45);text-transform:uppercase"><span>Show</span><input id="topRange" type="range" min="5" max="100" value="${topCount}" step="5" oninput="setTopCount(this.value)" style="width:140px;accent-color:var(--g);cursor:pointer"><span id="topRangeVal" style="color:var(--g);min-width:24px;text-align:right">${topCount}</span></div></div>
   <div id="topAssetsBody">${renderTopAssetsRows(data, n)}</div></div>`;
 }
 

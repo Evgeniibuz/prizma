@@ -103,7 +103,7 @@
   </style>
 </head>
 <body>
-<div id="ubg" class="blur-sm"><div data-us-project="lvQHbwURkWLN3CcEaMHS" style="width:1440px;height:900px"></div></div>
+<div id="bg" class="blur-sm"></div>
 <div class="overlay"></div>
 <div class="app-radar">
   <!-- Topbar -->
@@ -113,7 +113,8 @@
       <div class="tb-t" id="clock"></div>
       <div class="tb-t" id="userDisplay" style="margin-right:16px"></div>
       <a class="btn btn-n" href="dashboard">Dashboard</a>
-      <a class="btn btn-n" href="https://x.com/theprizm_ai" target="_blank">Twitter</a>
+      <a class="btn btn-n" href="https://x.com/pulselabs_hq" target="_blank" rel="noopener">Twitter</a>
+      <a class="btn btn-n" href="https://t.me/pulseofficialchannel" target="_blank" rel="noopener">Telegram</a>
       <a class="btn btn-n" href="agents">Agents Lab</a>
       <button class="btn btn-n" onclick="doLogout()" style="border-color:rgba(255,68,102,.3);color:var(--r)">
         <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor">
@@ -168,8 +169,9 @@
 <script src="config.js?v=20260222_1"></script>
 <script src="api.js?v=20260222_1"></script>
 <script src="utils.js?v=20260222_1"></script>
+<script src="bg.js?v=20260518_1"></script>
 <script>
-initUnicorn();
+initBackground();
 if (!requireAuth()) throw 'no auth';
 initProfile(); closeProfileOnClickOut(); startClock(document.getElementById('clock'));
 

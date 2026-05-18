@@ -2,22 +2,9 @@
 // PULSΞ Shared Utilities
 // ═══════════════════════════════════════
 
-// ── Unicorn Studio init ──
+// ── Background init (legacy alias kept for older HTML inline scripts) ──
 function initUnicorn() {
-  const u = window.UnicornStudio;
-  if (u && u.init) {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => u.init());
-    else u.init();
-  } else {
-    window.UnicornStudio = { isInitialized: false };
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.0.5/dist/unicornStudio.umd.js';
-    s.onload = () => {
-      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => UnicornStudio.init());
-      else UnicornStudio.init();
-    };
-    (document.head || document.body).appendChild(s);
-  }
+  if (typeof initBackground === 'function') initBackground();
 }
 
 // ── Formatters ──

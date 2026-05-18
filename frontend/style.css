@@ -5,10 +5,10 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--fm);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 /* BG */
-#ubg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;will-change:transform;pointer-events:none}
-#ubg div[data-us-project]{width:100%!important;height:100%!important}
-#ubg.blur{filter:blur(12px) saturate(.8) brightness(.6);transform:scale(1.15)}
-#ubg.blur-sm{filter:blur(5px) saturate(.85) brightness(.65);transform:scale(1.05)}
+#bg{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden}
+#bg canvas{display:block;width:100%!important;height:100%!important}
+#bg.blur{filter:blur(8px) saturate(.9) brightness(.6);transform:scale(1.1)}
+#bg.blur-sm{filter:blur(3px) saturate(.9) brightness(.65);transform:scale(1.04)}
 .overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;background:radial-gradient(ellipse at center, rgba(0,0,0,.2) 0%, rgba(0,0,0,.6) 100%)}
 
 /* Buttons */
