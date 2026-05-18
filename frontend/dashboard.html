@@ -207,6 +207,7 @@ initUnicorn();
 startClock(document.getElementById('clock'));
 
 let md = [], mdTop = [], cv = 'overview', lastUpdate = Date.now(), sortBy = 'market_cap', sortDir = 'desc', agentVisible = true;
+let topCount = (() => { try { const v = parseInt(localStorage.getItem('pulse_top_count'), 10); return (v >= 5 && v <= 30) ? v : 15; } catch(e) { return 15; } })();
 
 async function loadMarket() {
   md = await API.market();
@@ -221,7 +222,7 @@ async function loadMarket() {
 async function loadTopCoins() {
   if (mdTop.length > 0) return; // Already loaded
   mdTop = await API.topCoins(100) || [];
-  if (cv === 'markets') rv(); // Refresh if already on markets view
+  if (cv === 'markets' || cv === 'overview') rv(); // Refresh if on a view that uses mdTop
 }
 
 function updateRefreshTimers() {
@@ -297,12 +298,29 @@ function rOV(m) {
   const ac = md.reduce((s, c) => s + (c.price_change_percentage_24h_in_currency || 0), 0) / md.length;
   const data = mdTop.length > 0 ? mdTop : md;
   const tp = [...data].sort((a, b) => (b.price_change_percentage_24h_in_currency || 0) - (a.price_change_percentage_24h_in_currency || 0))[0];
+  const n = Math.min(topCount, data.length);
   m.innerHTML = `<div class="st stg s1">Market Overview</div>
   <div class="sr stg s2"><div class="sc"><div class="scl">Total Market Cap</div><div class="scv">${fmt(tc)}</div></div><div class="sc"><div class="scl">24h Volume</div><div class="scv">${fmt(tv)}</div></div><div class="sc"><div class="scl">Avg 24h</div><div class="scv" style="color:${pc(ac)}">${pct(ac)}</div></div><div class="sc"><div class="scl">Top Mover</div><div class="scv">${tp ? tp.symbol.toUpperCase() : '—'}</div><div class="scs" style="color:${pc(tp?.price_change_percentage_24h_in_currency)}">${tp ? pct(tp.price_change_percentage_24h_in_currency) : '—'}</div></div></div>
-  <div class="tw stg s3"><div class="th"><div class="tt">Top Assets <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div></div>
-  <table><thead><tr><th>#</th><th>Asset</th><th>Price</th><th>1h</th><th>24h</th><th>7d</th><th></th></tr></thead><tbody>
-  ${md.slice(0, 6).map((c, i) => `<tr><td style="color:var(--w20)">${i + 1}</td><td><div class="tc"><div class="ti"><img src="${getCryptoIcon(c.symbol)}" alt="${c.symbol}" onerror="showIconFallback(this, '${c.symbol}')"></div><span class="ts">${c.symbol.toUpperCase()}</span><span class="tn" title="${c.name}">${c.name}</span></div></td><td style="color:#fff;font-weight:500">${fmt(c.current_price)}</td><td style="color:${pc(c.price_change_percentage_1h_in_currency)}">${pct(c.price_change_percentage_1h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_7d_in_currency)}">${pct(c.price_change_percentage_7d_in_currency)}</td><td><button class="btn btn-a" style="height:24px;font-size:7px" onclick="qA('Deep analysis $${c.symbol.toUpperCase()}')">Analyze</button></td></tr>`).join('')}
-  </tbody></table></div>`;
+  <div class="tw stg s3"><div class="th" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div class="tt">Top Assets <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div><div class="top-slider-wrap" style="display:flex;align-items:center;gap:10px;font-family:var(--fm);font-size:9px;letter-spacing:1.5px;color:var(--w45);text-transform:uppercase"><span>Show</span><input id="topRange" type="range" min="5" max="30" value="${topCount}" step="1" oninput="setTopCount(this.value)" style="width:120px;accent-color:var(--g);cursor:pointer"><span id="topRangeVal" style="color:var(--g);min-width:18px;text-align:right">${topCount}</span></div></div>
+  <div id="topAssetsBody">${renderTopAssetsRows(data, n)}</div></div>`;
+}
+
+function renderTopAssetsRows(data, n) {
+  return `<table><thead><tr><th>#</th><th>Asset</th><th>Price</th><th>1h</th><th>24h</th><th>7d</th><th></th></tr></thead><tbody>
+  ${data.slice(0, n).map((c, i) => `<tr><td style="color:var(--w20)">${i + 1}</td><td><div class="tc"><div class="ti"><img src="${getCryptoIcon(c.symbol)}" alt="${c.symbol}" onerror="showIconFallback(this, '${c.symbol}')"></div><span class="ts">${c.symbol.toUpperCase()}</span><span class="tn" title="${c.name}">${c.name}</span></div></td><td style="color:#fff;font-weight:500">${fmt(c.current_price)}</td><td style="color:${pc(c.price_change_percentage_1h_in_currency)}">${pct(c.price_change_percentage_1h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_7d_in_currency)}">${pct(c.price_change_percentage_7d_in_currency)}</td><td><button class="btn btn-a" style="height:24px;font-size:7px" onclick="qA('Deep analysis $${c.symbol.toUpperCase()}')">Analyze</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function setTopCount(v) {
+  topCount = parseInt(v, 10) || 15;
+  try { localStorage.setItem('pulse_top_count', String(topCount)); } catch(e) {}
+  const valEl = document.getElementById('topRangeVal');
+  if (valEl) valEl.textContent = topCount;
+  const body = document.getElementById('topAssetsBody');
+  if (body) {
+    const data = mdTop.length > 0 ? mdTop : md;
+    body.innerHTML = renderTopAssetsRows(data, Math.min(topCount, data.length));
+  }
 }
 
 function sortMarkets(field) {
