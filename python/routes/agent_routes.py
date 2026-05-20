@@ -260,7 +260,7 @@ async def chat_with_agent(request: ChatRequest):
     if not request.message:
         raise HTTPException(status_code=400, detail="No message provided")
     if not deepseek_client:
-        return ChatResponse(reply=None, error="Set DEEPSEEK_API_KEY env var")
+        return ChatResponse(reply=None, error="AI agent not configured")
 
     full_message = request.message
     if request.context:
@@ -287,7 +287,7 @@ async def run_mission(request: MissionRequest):
     if not request.task:
         raise HTTPException(status_code=400, detail="No task provided")
     if not deepseek_client:
-        return MissionResponse(synthesis=None, error="Set DEEPSEEK_API_KEY env var")
+        return MissionResponse(synthesis=None, error="AI agent not configured")
 
     full_task = request.task
 
@@ -345,7 +345,7 @@ async def run_mission(request: MissionRequest):
 @router.post("/signals", response_model=SignalsResponse)
 async def generate_signals(request: SignalsRequest):
     if not deepseek_client:
-        return SignalsResponse(signals=None, error="Set DEEPSEEK_API_KEY env var")
+        return SignalsResponse(signals=None, error="AI agent not configured")
 
     market_context = "Current crypto market overview:\n\n"
 

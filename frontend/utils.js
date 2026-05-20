@@ -19,11 +19,19 @@ function fmt(n, d = 2) {
 function pct(n) { return n == null ? '—' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%'; }
 function pc(n) { return n >= 0 ? 'var(--g)' : 'var(--r)'; }
 
-// ── Crypto icon from JSDelivr CDN (free, no CoinGecko) ──
-function getCryptoIcon(symbol) {
-  if (!symbol) return '';
-  const s = symbol.toLowerCase();
-  // Using cryptocurrency-icons via JSDelivr CDN
+// ── Crypto icon resolver ──
+// Pass the whole coin object (preferred — uses CoinGecko's image URL with 100% coverage)
+// or just a symbol string (legacy — falls back to cryptocurrency-icons CDN, ~500 coins).
+function getCryptoIcon(coinOrSymbol) {
+  if (!coinOrSymbol) return '';
+  // If the caller passed a coin object, prefer the CoinGecko image URL
+  // (it's already in the API response and covers every listed token).
+  if (typeof coinOrSymbol === 'object') {
+    if (coinOrSymbol.image) return coinOrSymbol.image;
+    if (coinOrSymbol.symbol) coinOrSymbol = coinOrSymbol.symbol;
+    else return '';
+  }
+  const s = String(coinOrSymbol).toLowerCase();
   return `https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${s}.svg`;
 }
 
