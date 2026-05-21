@@ -431,16 +431,18 @@ function rW() {
   }
   el.innerHTML = watched.map(c => {
     const sym = c.symbol.toUpperCase();
-    return `<div class="wi" style="position:relative">
-      <div onclick="qA('Analysis $${sym}')" style="cursor:pointer">
-        <div class="ws">${sym}</div>
-        <div class="wn" title="${c.name}">${c.name}</div>
+    return `<div class="wi" style="cursor:pointer" onclick="qA('Analysis $${sym}')">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+        <button onclick="toggleWatch('${sym}', event)" title="Remove from watchlist" style="background:none;border:none;color:var(--g);font-size:12px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;opacity:.85;transition:opacity .2s,transform .15s" onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'" onmouseout="this.style.opacity=.85;this.style.transform='scale(1)'">★</button>
+        <div style="min-width:0;overflow:hidden">
+          <div class="ws">${sym}</div>
+          <div class="wn" title="${c.name}">${c.name}</div>
+        </div>
       </div>
-      <div>
+      <div style="text-align:right;flex-shrink:0">
         <div class="wp">${fmt(c.current_price)}</div>
         <div class="wc" style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</div>
       </div>
-      <button onclick="toggleWatch('${sym}', event)" title="Remove from watchlist" style="position:absolute;top:6px;right:6px;background:none;border:none;color:var(--g);font-size:12px;cursor:pointer;padding:2px 4px;line-height:1;opacity:.6;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">★</button>
     </div>`;
   }).join('');
 }
