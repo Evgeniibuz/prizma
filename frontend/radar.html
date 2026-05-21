@@ -115,7 +115,6 @@
       <a class="btn btn-n" href="dashboard">Dashboard</a>
       <a class="btn btn-n" href="https://x.com/pulselabs_hq" target="_blank" rel="noopener">Twitter</a>
       <a class="btn btn-n" href="https://t.me/pulseofficialchannel" target="_blank" rel="noopener">Telegram</a>
-      <a class="btn btn-n" href="agents">Agents Lab</a>
       <button class="btn btn-n" onclick="doLogout()" style="border-color:rgba(255,68,102,.3);color:var(--r)">
         <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor">
           <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
@@ -152,10 +151,10 @@
       <div class="pn-section ac" id="sec-live">
         <div class="filters">
           <button class="fbtn ac" onclick="setFilter('all',this)">All</button>
-          <button class="fbtn" onclick="setFilter('hot',this)">🔥 Hot</button>
-          <button class="fbtn" onclick="setFilter('momentum',this)">⚡ Momentum</button>
-          <button class="fbtn" onclick="setFilter('social',this)">📢 Social</button>
-          <button class="fbtn" onclick="setFilter('volume',this)">📊 Volume</button>
+          <button class="fbtn" onclick="setFilter('hot',this)">Hot</button>
+          <button class="fbtn" onclick="setFilter('momentum',this)">Momentum</button>
+          <button class="fbtn" onclick="setFilter('social',this)">Social</button>
+          <button class="fbtn" onclick="setFilter('volume',this)">Volume</button>
         </div>
         <div class="feed" id="feedList"></div>
       </div>
@@ -491,7 +490,7 @@ function drawRadar() {
   }
 
   // ── Signals ──
-  signals.forEach(s => {
+  getFilteredSignals().forEach(s => {
     // Animate toward target
     if (s.progress < 1) {
       s.progress += s.speed;
@@ -571,7 +570,7 @@ canvas.addEventListener('mousemove', e => {
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
   let found = null;
-  for (const s of signals) {
+  for (const s of getFilteredSignals()) {
     const dx = s.x - mx, dy = s.y - my;
     if (Math.sqrt(dx * dx + dy * dy) < s.size + 10) { found = s; break; }
   }
@@ -596,7 +595,7 @@ canvas.addEventListener('mouseleave', () => { tip.className = 'sig-tip'; });
 canvas.addEventListener('click', e => {
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  for (const s of signals) {
+  for (const s of getFilteredSignals()) {
     const dx = s.x - mx, dy = s.y - my;
     if (Math.sqrt(dx * dx + dy * dy) < s.size + 10) {
       window.location.href = `dashboard?q=Radar+alert+$${s.symbol}`;
@@ -606,11 +605,16 @@ canvas.addEventListener('click', e => {
 });
 
 // ── Feed ──
+
+function getFilteredSignals() {
+  if (currentFilter === 'all') return signals;
+  if (currentFilter === 'hot') return signals.filter(s => s.heat === 'hot');
+  return signals.filter(s => s.types.includes(currentFilter));
+}
+
 function renderFeed() {
   const list = document.getElementById('feedList');
-  const filtered = currentFilter === 'all' ? signals : signals.filter(s =>
-    currentFilter === 'hot' ? s.heat === 'hot' : s.types.includes(currentFilter)
-  );
+  const filtered = getFilteredSignals();
   list.innerHTML = filtered.slice(0, 20).map((s, i) => {
     const sc = s.score >= 85 ? 'var(--g)' : s.score >= 70 ? 'var(--a)' : 'var(--c)';
     return `<div class="fc ${s.heat} stg" style="animation-delay:${i * .04}s" onclick="window.location.href='dashboard?q=Radar+$${s.symbol}'">
@@ -661,6 +665,7 @@ function setFilter(f, el) {
   document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('ac'));
   el.classList.add('ac');
   renderFeed();
+  /* drawRadar() is on rAF, so it'll pick up the filter next frame automatically */
 }
 
 // ── Init ──
