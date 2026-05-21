@@ -101,7 +101,7 @@ returns an empty/error payload but the rest of the app still works.
 
 | Variable                | What it unlocks                         |
 | ----------------------- | --------------------------------------- |
-| `DEEPSEEK_API_KEY`      | AI agent chat, missions, signals        |
+| `LLM             `      | AI agent chat, missions, signals        |
 | `TWITTER_BEARER_TOKEN`  | Real cashtag mentions + sentiment       |
 | `COINGECKO_API_KEY`     | Higher CoinGecko rate limits            |
 
