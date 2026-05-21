@@ -23,7 +23,7 @@ Then open <http://localhost:8000>. Demo account: `demo` / `demo1234`.
 │  (static)    │    │  (uvicorn)       │───▶│  Redis       │
 └──────────────┘    └──────────────────┘    └──────────────┘
                             │
-                            └─▶ DeepSeek / CoinGecko / Twitter / Blockchair / DexScreener
+                            └─▶ LLM / CoinGecko / Twitter / Blockchair / DexScreener
 ```
 
 Everything lives in one container image (FastAPI serves both the JSON API
