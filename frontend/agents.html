@@ -324,22 +324,24 @@ function stab(id, el) {
 
 const MD = [{ s: 'BTC', c: 2.18, v: 38.2, m: 1937 }, { s: 'ETH', c: 1.87, v: 14.8, m: 329 }, { s: 'SOL', c: 4.52, v: 3.4, m: 95.6 }, { s: 'XRP', c: -.74, v: 4.2, m: 146 }, { s: 'DOGE', c: 3.21, v: 1.8, m: 38.2 }, { s: 'ADA', c: 1.15, v: .68, m: 27.8 }, { s: 'TON', c: -1.32, v: .32, m: 12.5 }, { s: 'AVAX', c: 2.67, v: .41, m: 9.9 }];
 let marketData = [];
+let marketDataFull = []; // Full CoinGecko objects for AI missions
 
 async function loadChartData() {
   try {
     const data = await API.market();
     if (data && data.length > 0) {
+      marketDataFull = data; // Keep full objects for AI
       marketData = data.map(coin => ({
         s: coin.symbol.toUpperCase(),
         c: coin.price_change_percentage_24h_in_currency || 0,
-        v: (coin.total_volume || 0) / 1e9, // Convert to billions
-        m: (coin.market_cap || 0) / 1e9 // Convert to billions
+        v: (coin.total_volume || 0) / 1e9,
+        m: (coin.market_cap || 0) / 1e9
       }));
-      rCh(); // Refresh chart
+      rCh();
     }
   } catch (e) {
     console.error('Failed to load chart data:', e);
-    marketData = MD; // Fallback to mock data
+    marketData = MD;
   }
 }
 
@@ -397,7 +399,7 @@ async function launch() {
   uP(5, 'Decomposing task...'); await dl(800);
 
   // Try real API mission
-  const realSynth = API.mission(task, marketData); // fire async
+  const realSynth = API.mission(task, marketDataFull.length > 0 ? marketDataFull : marketData); // fire async
 
   const sc = document.getElementById('subA');
   const results = [];
