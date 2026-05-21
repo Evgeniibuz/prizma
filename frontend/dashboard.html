@@ -675,11 +675,9 @@ async function rCS(m) {
   
   // Check if data is available
   if (!cashtagData || cashtagData.status === 'error' || !cashtagData.data || cashtagData.data.length === 0) {
-    const errorMsg = cashtagData?.message || 'Twitter API not configured or no data available';
     m.innerHTML = `<div class="st stg s1">Trending Cashtags</div>
     <div class="stg s2" style="margin-bottom:18px;font-size:11px;color:var(--w45);line-height:1.6">Real-time $CASHTAG tracking from Twitter API.</div>
-    <div style="text-align:center;padding:40px;color:var(--w45)">${errorMsg}</div>
-    <div style="text-align:center;padding:10px 40px;font-size:9px;color:var(--w20)">Check Twitter Bearer Token in .env file or wait for API access approval.</div>`;
+    <div style="text-align:center;padding:80px 40px;font-size:28px;font-weight:700;color:var(--w45);letter-spacing:4px">Soon</div>`;
     return;
   }
   
