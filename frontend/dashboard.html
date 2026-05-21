@@ -372,6 +372,25 @@ startClock(document.getElementById('clock'));
 
 let md = [], mdTop = [], cv = 'overview', lastUpdate = Date.now(), sortBy = 'market_cap', sortDir = 'desc', agentVisible = true;
 let topCount = (() => { try { const v = parseInt(localStorage.getItem('pulse_top_count'), 10); return (v >= 5 && v <= 100) ? v : 15; } catch(e) { return 15; } })();
+let watchlist = (() => {
+  try {
+    const v = JSON.parse(localStorage.getItem('pulse_watchlist') || 'null');
+    if (Array.isArray(v)) return v.map(s => String(s).toUpperCase());
+  } catch(e) {}
+  return ['BTC', 'ETH', 'XRP', 'SOL', 'DOGE', 'ADA'];
+})();
+
+function isWatched(sym) { return watchlist.indexOf(String(sym).toUpperCase()) >= 0; }
+
+function toggleWatch(sym, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  sym = String(sym).toUpperCase();
+  const i = watchlist.indexOf(sym);
+  if (i >= 0) watchlist.splice(i, 1); else watchlist.push(sym);
+  try { localStorage.setItem('pulse_watchlist', JSON.stringify(watchlist)); } catch(e) {}
+  rW();
+  if (cv === 'markets' || cv === 'overview') rv();
+}
 
 async function loadMarket() {
   md = await API.market();
@@ -386,6 +405,7 @@ async function loadMarket() {
 async function loadTopCoins() {
   if (mdTop.length > 0) return; // Already loaded
   mdTop = await API.topCoins(100) || [];
+  rW(); // Refresh watchlist sidebar in case it includes alts only in top-100
   if (cv === 'markets' || cv === 'overview') rv(); // Refresh if on a view that uses mdTop
 }
 
@@ -400,9 +420,29 @@ function updateRefreshTimers() {
 }
 
 function rW() {
-  document.getElementById('wl').innerHTML = md.slice(0, 6).map(c =>
-    `<div class="wi" onclick="qA('Analysis $${c.symbol.toUpperCase()}')"><div><div class="ws">${c.symbol.toUpperCase()}</div><div class="wn" title="${c.name}">${c.name}</div></div><div><div class="wp">${fmt(c.current_price)}</div><div class="wc" style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</div></div></div>`
-  ).join('');
+  const el = document.getElementById('wl');
+  const all = (mdTop && mdTop.length ? mdTop : []).concat(md || []);
+  const watched = watchlist
+    .map(sym => all.find(c => (c.symbol || '').toUpperCase() === sym))
+    .filter(Boolean);
+  if (!watched.length) {
+    el.innerHTML = `<div style="padding:14px 6px;color:var(--w20);font-size:9px;letter-spacing:1px;text-align:center;line-height:1.6">Click the ★ on any asset to add to watchlist</div>`;
+    return;
+  }
+  el.innerHTML = watched.map(c => {
+    const sym = c.symbol.toUpperCase();
+    return `<div class="wi" style="position:relative">
+      <div onclick="qA('Analysis $${sym}')" style="cursor:pointer">
+        <div class="ws">${sym}</div>
+        <div class="wn" title="${c.name}">${c.name}</div>
+      </div>
+      <div>
+        <div class="wp">${fmt(c.current_price)}</div>
+        <div class="wc" style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</div>
+      </div>
+      <button onclick="toggleWatch('${sym}', event)" title="Remove from watchlist" style="position:absolute;top:6px;right:6px;background:none;border:none;color:var(--g);font-size:12px;cursor:pointer;padding:2px 4px;line-height:1;opacity:.6;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">★</button>
+    </div>`;
+  }).join('');
 }
 
 function rC() {
@@ -515,8 +555,8 @@ function rMK(m) {
   
   m.innerHTML = `<div class="st stg s1">All Markets — Top ${data.length}</div>
   <div class="tw stg s2"><div class="th"><div class="tt">Full Market Data <span class="refresh-timer" style="color:var(--w20);font-size:8px;margin-left:8px">—</span></div></div>
-  ${loadingMsg || `<table><thead><tr><th>#</th><th>Asset</th><th style="${thStyle('current_price')}">Price${sortIcon('current_price')}</th><th style="${thStyle('price_change_percentage_24h_in_currency')}">24h${sortIcon('price_change_percentage_24h_in_currency')}</th><th style="${thStyle('price_change_percentage_7d_in_currency')}">7d${sortIcon('price_change_percentage_7d_in_currency')}</th><th style="${thStyle('total_volume')}">Volume${sortIcon('total_volume')}</th><th style="${thStyle('market_cap')}">MCap${sortIcon('market_cap')}</th><th>Risk</th></tr></thead><tbody>
-  ${data.map((c, i) => `<tr><td style="color:var(--w20)">${i + 1}</td><td><div class="tc"><div class="ti"><img src="${getCryptoIcon(c)}" alt="${c.symbol}" onerror="showIconFallback(this, '${c.symbol}')"></div><span class="ts">${c.symbol.toUpperCase()}</span><span class="tn" title="${c.name}">${c.name}</span></div></td><td style="color:#fff;font-weight:500">${fmt(c.current_price)}</td><td style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_7d_in_currency)}">${pct(c.price_change_percentage_7d_in_currency)}</td><td>${fmt(c.total_volume)}</td><td>${fmt(c.market_cap)}</td><td><button class="btn btn-a" onclick="qA('Risk $${c.symbol.toUpperCase()}')">Risk</button></td></tr>`).join('')}
+  ${loadingMsg || `<table><thead><tr><th style="width:28px"></th><th>#</th><th>Asset</th><th style="${thStyle('current_price')}">Price${sortIcon('current_price')}</th><th style="${thStyle('price_change_percentage_24h_in_currency')}">24h${sortIcon('price_change_percentage_24h_in_currency')}</th><th style="${thStyle('price_change_percentage_7d_in_currency')}">7d${sortIcon('price_change_percentage_7d_in_currency')}</th><th style="${thStyle('total_volume')}">Volume${sortIcon('total_volume')}</th><th style="${thStyle('market_cap')}">MCap${sortIcon('market_cap')}</th><th>Risk</th></tr></thead><tbody>
+  ${data.map((c, i) => { const sym = c.symbol.toUpperCase(); const w = isWatched(sym); return `<tr><td style="text-align:center;padding:0"><button onclick="toggleWatch('${sym}', event)" title="${w ? 'Remove from' : 'Add to'} watchlist" style="background:none;border:none;color:${w ? 'var(--g)' : 'var(--w20)'};font-size:14px;cursor:pointer;padding:4px;line-height:1;transition:color .2s,transform .15s" onmouseover="this.style.color='${w ? 'var(--g)' : 'var(--w70)'}';this.style.transform='scale(1.15)'" onmouseout="this.style.color='${w ? 'var(--g)' : 'var(--w20)'}';this.style.transform='scale(1)'">${w ? '★' : '☆'}</button></td><td style="color:var(--w20)">${i + 1}</td><td><div class="tc"><div class="ti"><img src="${getCryptoIcon(c)}" alt="${c.symbol}" onerror="showIconFallback(this, '${c.symbol}')"></div><span class="ts">${sym}</span><span class="tn" title="${c.name}">${c.name}</span></div></td><td style="color:#fff;font-weight:500">${fmt(c.current_price)}</td><td style="color:${pc(c.price_change_percentage_24h_in_currency)}">${pct(c.price_change_percentage_24h_in_currency)}</td><td style="color:${pc(c.price_change_percentage_7d_in_currency)}">${pct(c.price_change_percentage_7d_in_currency)}</td><td>${fmt(c.total_volume)}</td><td>${fmt(c.market_cap)}</td><td><button class="btn btn-a" onclick="qA('Risk $${sym}')">Risk</button></td></tr>`; }).join('')}
   </tbody></table>`}</div>`;
 }
 
@@ -556,9 +596,15 @@ async function genSG() {
   m.innerHTML = `<div class="st stg s1">Trading Signals</div>
   <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">Generating fresh AI signals...</div>
   <div style="text-align:center;padding:40px;color:var(--w45)">Analyzing market data...</div>`;
-  
+
   try {
-    const signals = await API.signals(md);
+    // Ensure top-100 is loaded so AI sees the wider market, not just the base 8
+    if (!mdTop || mdTop.length === 0) {
+      await loadTopCoins();
+    }
+    // Use top-50 of the broad list for richer context; fall back to base if needed
+    const dataset = (mdTop && mdTop.length > 0) ? mdTop.slice(0, 50) : md;
+    const signals = await API.signals(dataset);
     if (!signals || signals.length === 0) {
       m.innerHTML = `<div class="st stg s1">Trading Signals</div>
       <div class="stg s2" style="margin-bottom:16px;font-size:11px;color:var(--w45);line-height:1.6">AI-powered trading signals with entry/exit strategies based on market momentum, volume analysis, and sentiment data.</div>

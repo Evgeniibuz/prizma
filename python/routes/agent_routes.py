@@ -363,11 +363,11 @@ async def generate_signals(request: SignalsRequest):
                     coins,
                     key=lambda x: x.get("price_change_percentage_24h_in_currency", 0) or 0,
                     reverse=True,
-                )[:3]
+                )[:6]
                 top_losers = sorted(
                     coins,
                     key=lambda x: x.get("price_change_percentage_24h_in_currency", 0) or 0,
-                )[:3]
+                )[:6]
 
                 market_context += f"Total Market Cap: ${total_mcap / 1e9:.1f}B\n"
                 market_context += f"24h Volume: ${total_volume / 1e9:.1f}B\n"
@@ -386,8 +386,8 @@ async def generate_signals(request: SignalsRequest):
                         f"({c.get('price_change_percentage_24h_in_currency', 0) or 0:+.2f}%)\n"
                     )
 
-                market_context += "\nTop 8 Assets:\n"
-                for c in coins[:8]:
+                market_context += "\nTop Assets:\n"
+                for c in coins[:25]:
                     market_context += (
                         f"{(c.get('symbol') or '').upper()}: ${c.get('current_price', 0):.4f} | "
                         f"1h: {c.get('price_change_percentage_1h_in_currency', 0) or 0:+.2f}% | "
