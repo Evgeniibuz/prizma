@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
+  html,body{height:auto!important;overflow-y:auto!important;overflow-x:hidden}
   .doc{position:relative;z-index:10;max-width:820px;margin:0 auto;padding:80px 24px 120px}
   .doc-bc{font-family:var(--fm);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--w20);margin-bottom:24px}
   .doc-bc a{color:var(--g);text-decoration:none}
@@ -62,8 +63,44 @@
   <h2>Prediction staking</h2>
   <p>Phase 3 (coming soon): stake $PLSX on a market call and earn when you're right — settled on-chain. We ship paper staking first to validate resolution, then an audited Anchor escrow with an oracle. See the <a href="roadmap" style="color:var(--c);text-decoration:none">roadmap</a> and <a href="staking" style="color:var(--c);text-decoration:none">staking preview</a>.</p>
 
+  <h2>How Radar scoring works</h2>
+  <p>The Radar assigns each token a deterministic <strong>0–100 score</strong> for a given market snapshot, so the feed doesn't jump on every refresh. The score blends four inputs:</p>
+  <ul>
+    <li><strong>Momentum</strong> — magnitude of the 24h price move.</li>
+    <li><strong>Volume</strong> — 24h volume relative to market cap (liquidity pressure).</li>
+    <li><strong>Acceleration</strong> — short-term (1h) move, i.e. is it speeding up.</li>
+    <li><strong>Social velocity</strong> — change in cashtag mention rate.</li>
+  </ul>
+  <p>Tokens are tagged <em>momentum</em>, <em>volume</em>, <em>social</em>, or <em>kol</em>, and bucketed by heat: <strong>hot</strong> (≥85), <strong>warm</strong> (≥70), <strong>cold</strong>. Click any token to open its detail card with the full breakdown and an AI read (holder tier).</p>
+
+  <h2>Using the Agent</h2>
+  <p>The agent answers market questions with a current, data-anchored read — it pulls live prices before responding, so it doesn't guess from training data.</p>
+  <ul>
+    <li><strong>Chat</strong> — ask "what's moving SOL today" or "is this rotation real".</li>
+    <li><strong>Missions</strong> — multi-agent deep analysis: market, cashtags, on-chain, synthesized into one briefing.</li>
+    <li><strong>Dedicated Agent (pro)</strong> — save a strategy + watchlist; it runs autonomous missions on a schedule and stores the results.</li>
+  </ul>
+
+  <h2>Signals</h2>
+  <p>The signal engine generates actionable calls from the live market: <strong>action</strong> (BUY/SELL/HOLD/CLOSE), <strong>confidence</strong>, entry, target, stop, timeframe, and a one-line data-driven reason. Signals are stored so you can review recent history per ticker.</p>
+
+  <h2>Wallet &amp; security</h2>
+  <ul>
+    <li>Linking a wallet uses <strong>Sign-In With Solana</strong>: you sign a one-time message — it is read-only and authorizes <strong>no transaction</strong> and no spend approval.</li>
+    <li>We never request your seed phrase or private key, and never take custody of funds.</li>
+    <li>Your tier is read from your public on-chain balance and cached briefly — holding is all that's required, nothing is locked or transferred.</li>
+    <li>Unlink any time from the terminal; it removes the address from your account.</li>
+  </ul>
+
+  <h2>FAQ</h2>
+  <p><strong>Do I need $PLSX to use PULSΞ?</strong><br>No — the free tier gives you a Radar teaser, top signals, and limited agent chat. $PLSX unlocks depth.</p>
+  <p><strong>Does holding more cost me anything?</strong><br>No. Hold-to-access reads your balance; there's no per-action fee or lock-up. Sell any time (you just drop tiers).</p>
+  <p><strong>Which wallet?</strong><br>Phantom on Solana. Connect from the Radar page.</p>
+  <p><strong>Is staking live?</strong><br>Not yet — it's Phase 3. See the <a href="roadmap" style="color:var(--c);text-decoration:none">roadmap</a> and <a href="staking" style="color:var(--c);text-decoration:none">staking preview</a>.</p>
+  <p><strong>Where's the token contract?</strong><br>$PLSX is not minted yet. The terminal runs today with gating in demo mode; the mint address will be published here and on our socials at launch.</p>
+
   <h2>Disclaimer</h2>
-  <p>PULSΞ is informational, not financial advice. Crypto is volatile; your decisions are your own.</p>
+  <p>PULSΞ is informational, not financial advice. Crypto is volatile; your decisions are your own. Never share your seed phrase — PULSΞ will never ask for it.</p>
 
   <div class="foot"><a href="/" style="color:var(--g)">← Back to PULSΞ</a> · <a href="roadmap" style="color:var(--c)">Roadmap</a> · <a href="privacy" style="color:var(--c)">Privacy</a></div>
 </div>
