@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PULSΞ — Privacy Policy</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .doc{position:relative;z-index:10;max-width:760px;margin:0 auto;padding:80px 24px 120px}
+  .doc-bc{font-family:var(--fm);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--w20);margin-bottom:24px}
+  .doc-bc a{color:var(--g);text-decoration:none}
+  .doc h1{font-family:var(--fs);font-weight:300;font-size:clamp(32px,6vw,52px);color:#fff;letter-spacing:1px;margin-bottom:8px}
+  .doc .upd{font-family:var(--fm);font-size:10px;color:var(--w20);letter-spacing:1px;margin-bottom:40px}
+  .doc h2{font-family:var(--fm);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--g);margin:40px 0 14px}
+  .doc p,.doc li{font-family:var(--fm);font-size:12px;line-height:2;color:var(--w70);letter-spacing:.3px}
+  .doc ul{margin:8px 0 8px 18px}.doc li{margin-bottom:6px}
+  .doc strong{color:#fff;font-weight:500}
+  .doc a.inl{color:var(--c);text-decoration:none}
+  .doc .foot{margin-top:56px;padding-top:24px;border-top:1px solid var(--w8);font-size:10px;color:var(--w20);letter-spacing:1px}
+</style>
+</head>
+<body>
+<div id="bg" class="blur-sm"></div>
+<div class="overlay"></div>
+<div class="doc">
+  <div class="doc-bc"><a href="/">PULSΞ</a> / Privacy Policy</div>
+  <h1>Privacy Policy</h1>
+  <div class="upd">Last updated: June 26, 2026</div>
+
+  <p>PULSΞ ("we", "the terminal") is an AI market-intelligence product. This policy explains what we collect, why, and your choices. We keep data collection to the minimum needed to run the service.</p>
+
+  <h2>What we collect</h2>
+  <ul>
+    <li><strong>Account</strong> — username and a hashed password (bcrypt). We never store passwords in plaintext.</li>
+    <li><strong>Wallet</strong> — if you link a Solana wallet, we store its public address and a verification timestamp. We never request or hold your private keys or seed phrase; signing is read-only and authorizes no transactions.</li>
+    <li><strong>Activity</strong> — basic event logs (login, logout, actions), IP address, and user-agent, used for security and abuse prevention.</li>
+    <li><strong>Usage data</strong> — agent prompts, missions, and chat you submit, stored to provide history and improve responses.</li>
+  </ul>
+
+  <h2>What we do NOT collect</h2>
+  <ul>
+    <li>Private keys, seed phrases, or custody of your funds.</li>
+    <li>Off-platform browsing or third-party tracking profiles.</li>
+  </ul>
+
+  <h2>Third-party services</h2>
+  <p>To provide market data and AI features we send necessary requests to providers such as CoinGecko, DexScreener, an LLM provider, and a Solana RPC endpoint (for public balance reads). These providers process data under their own policies. Public on-chain data (wallet balances, transactions) is inherently public.</p>
+
+  <h2>How we use data</h2>
+  <ul>
+    <li>To authenticate you and resolve your $PLSX hold-to-access tier.</li>
+    <li>To generate signals, breakdowns, and agent missions.</li>
+    <li>To secure the service and prevent abuse.</li>
+  </ul>
+
+  <h2>Retention</h2>
+  <p>Account and wallet records persist while your account is active. Generated signals are pruned automatically (older entries removed on a schedule). You can request deletion of your account and associated data.</p>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>Unlink your wallet at any time from the terminal.</li>
+    <li>Request account deletion by contacting us.</li>
+  </ul>
+
+  <h2>Disclaimer</h2>
+  <p>PULSΞ is an intelligence tool, not financial advice. Signals, scores, and AI output are informational. Crypto assets are volatile and you are responsible for your own decisions.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a class="inl" href="https://x.com/pulselabs_hq" target="_blank" rel="noopener">@pulselabs_hq</a> or <a class="inl" href="https://t.me/pulseofficialchannel" target="_blank" rel="noopener">Telegram</a>.</p>
+
+  <div class="foot"><a href="/" style="color:var(--g);text-decoration:none">← Back to PULSΞ</a> · <a href="docs" style="color:var(--c);text-decoration:none">Docs</a> · <a href="roadmap" style="color:var(--c);text-decoration:none">Roadmap</a></div>
+</div>
+<script src="config.js"></script>
+<script src="bg.js"></script>
+</body>
+</html>

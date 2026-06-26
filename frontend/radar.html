@@ -168,6 +168,33 @@
   </aside>
 </div>
 
+<!-- Token detail modal -->
+<style>
+  #coinModal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  #coinModal .cm-card{width:min(440px,92vw);max-height:86vh;overflow-y:auto;border:1px solid var(--w12);border-radius:3px;background:rgba(8,8,12,.97);box-shadow:0 24px 64px rgba(0,0,0,.6);animation:fI .25s ease}
+  #coinModal .cm-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--w8)}
+  #coinModal .cm-x{background:none;border:1px solid var(--w8);color:var(--w45);width:28px;height:28px;border-radius:2px;cursor:pointer;font-size:13px;transition:all .2s}#coinModal .cm-x:hover{color:#fff;border-color:var(--w20)}
+  #coinModal .cm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--w4);font-size:11px}
+  #coinModal .cm-row span:first-child{color:var(--w20);letter-spacing:1px;text-transform:uppercase;font-size:9px}
+  #coinModal .cm-row span:last-child{color:var(--w70)}
+</style>
+<div id="coinModal" onclick="if(event.target===this)closeCoin()">
+  <div class="cm-card">
+    <div class="cm-head">
+      <div id="cmSym" style="font-family:var(--fd);font-weight:700;font-size:16px;letter-spacing:2px;color:#fff"></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="cmScore" style="font-size:20px;font-weight:600"></div>
+        <button class="cm-x" onclick="closeCoin()">✕</button>
+      </div>
+    </div>
+    <div style="padding:18px 20px">
+      <div id="cmRows"></div>
+      <div style="font-size:8px;letter-spacing:3px;color:var(--w20);text-transform:uppercase;margin:18px 0 10px">AI Breakdown</div>
+      <div id="cmAi" style="font-size:11px;color:var(--w70);line-height:1.8;min-height:40px"></div>
+    </div>
+  </div>
+</div>
+
 <script src="config.js?v=20260222_1"></script>
 <script src="api.js?v=20260222_1"></script>
 <script src="utils.js?v=20260222_1"></script>
@@ -628,18 +655,45 @@ canvas.addEventListener('mousemove', e => {
 });
 canvas.addEventListener('mouseleave', () => { tip.className = 'sig-tip'; });
 
-// Click → ask agent
+// Click → open token detail modal
 canvas.addEventListener('click', e => {
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left, my = e.clientY - rect.top;
   for (const s of getFilteredSignals()) {
     const dx = s.x - mx, dy = s.y - my;
     if (Math.sqrt(dx * dx + dy * dy) < s.size + 10) {
-      window.location.href = `dashboard?q=Radar+alert+$${s.symbol}`;
+      openCoinDetail(s);
       break;
     }
   }
 });
+
+// ── Token detail modal ──
+function openCoinSym(sym) { const s = signals.find(x => x.symbol === sym); if (s) openCoinDetail(s); }
+function closeCoin() { document.getElementById('coinModal').style.display = 'none'; }
+async function openCoinDetail(s) {
+  const sc = s.score >= 85 ? 'var(--g)' : s.score >= 70 ? 'var(--a)' : 'var(--c)';
+  document.getElementById('cmSym').innerHTML = `$${s.symbol} <span style="font-size:10px;color:var(--w20);letter-spacing:1px">${s.name || ''}</span>`;
+  const scEl = document.getElementById('cmScore'); scEl.textContent = s.score; scEl.style.color = sc;
+  document.getElementById('cmRows').innerHTML = `
+    <div class="cm-row"><span>Price</span><span>${fmt(s.price)}</span></div>
+    <div class="cm-row"><span>24h</span><span style="color:${pc(s.change)}">${pct(s.change)}</span></div>
+    <div class="cm-row"><span>Trigger</span><span>${(s.type || '').toUpperCase()}</span></div>
+    <div class="cm-row"><span>Heat</span><span style="text-transform:uppercase">${s.heat || ''}</span></div>
+    <div class="cm-row"><span>Tags</span><span>${(s.types || []).join(' · ') || '—'}</span></div>`;
+  const ai = document.getElementById('cmAi');
+  ai.innerHTML = '<span style="color:var(--w20)">Loading AI breakdown…</span>';
+  document.getElementById('coinModal').style.display = 'flex';
+  const bd = await API.radarBreakdown(s.symbol, 1);
+  if (bd && bd.summary) {
+    ai.innerHTML = bd.summary.replace(/\n/g, '<br>').replace(/(\$[A-Z]{2,10})/g, '<span style="color:var(--g)">$1</span>');
+  } else if (bd && bd.ai_locked) {
+    ai.innerHTML = `<span style="color:var(--c)">🔒 AI breakdown is a holder perk.</span><br>Connect a wallet holding $PLSX to unlock the full read. <a href="predictions" style="color:var(--c)">Learn more →</a>`;
+  } else {
+    ai.innerHTML = '<span style="color:var(--w20)">No AI summary available right now.</span>';
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCoin(); });
 
 // ── Feed ──
 
@@ -654,7 +708,7 @@ function renderFeed() {
   const filtered = getFilteredSignals();
   list.innerHTML = filtered.slice(0, 20).map((s, i) => {
     const sc = s.score >= 85 ? 'var(--g)' : s.score >= 70 ? 'var(--a)' : 'var(--c)';
-    return `<div class="fc ${s.heat} stg" style="animation-delay:${i * .04}s" onclick="window.location.href='dashboard?q=Radar+$${s.symbol}'">
+    return `<div class="fc ${s.heat} stg" style="animation-delay:${i * .04}s;cursor:pointer" onclick="openCoinSym('${s.symbol}')">
       <div class="fc-top">
         <div class="fc-sym" style="color:${sc}">$${s.symbol} <span class="fc-name">${s.name}</span></div>
         <div class="fc-score" style="color:${sc}">${s.score}</div>

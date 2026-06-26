@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PULSΞ — Roadmap Core</title>
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--g:#00ffa3;--c:#00d4ff;--a:#ffbb00;--ink:#e8fff5;--fd:'Syne',sans-serif;--fs:'Cormorant Garamond',serif;--fm:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;font-family:var(--fm);color:var(--ink)}
+#main{position:relative;width:100vw;height:100vh}
+#c{display:block;width:100%!important;height:100%!important}
+.scanline{position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.022) 3px,rgba(0,0,0,.022) 4px)}
+.corner{position:absolute;width:22px;height:22px;z-index:5}
+.corner.tl{top:20px;left:20px;border-top:1px solid rgba(0,255,163,.4);border-left:1px solid rgba(0,255,163,.4)}
+.corner.tr{top:20px;right:20px;border-top:1px solid rgba(0,255,163,.4);border-right:1px solid rgba(0,255,163,.4)}
+.corner.bl{bottom:20px;left:20px;border-bottom:1px solid rgba(0,255,163,.4);border-left:1px solid rgba(0,255,163,.4)}
+.corner.br{bottom:20px;right:20px;border-bottom:1px solid rgba(0,255,163,.4);border-right:1px solid rgba(0,255,163,.4)}
+.hud{position:absolute;pointer-events:none;z-index:5}
+.htl{top:34px;left:36px}.htr{top:34px;right:36px;text-align:right}.hbl{bottom:34px;left:36px}.hbr{bottom:34px;right:36px;text-align:right}
+.h-title{font-family:var(--fd);font-weight:800;font-size:18px;color:rgba(0,255,163,.95);letter-spacing:.34em;line-height:1.5;text-shadow:0 0 26px rgba(0,255,163,.45)}
+.h-sub{font-size:8px;color:rgba(0,255,163,.4);letter-spacing:.24em;text-transform:uppercase;margin-top:6px}
+.h-hint{font-size:7px;color:rgba(255,255,255,.22);letter-spacing:.14em;margin-top:12px;line-height:2.6}
+.h-stat{font-size:8px;color:rgba(232,255,245,.45);letter-spacing:.14em;line-height:2.5}
+.h-stat b{color:rgba(0,255,163,.85);font-weight:400}
+.pring{position:absolute;top:50%;left:50%;border-radius:50%;pointer-events:none;z-index:1;animation:pring 4s ease infinite;transform:translate(-50%,-50%)}
+.pring:nth-child(1){width:320px;height:320px;border:1px solid rgba(0,255,163,.05)}
+.pring:nth-child(2){width:520px;height:520px;border:1px solid rgba(0,255,163,.028);animation-delay:1.3s}
+.pring:nth-child(3){width:720px;height:720px;border:1px solid rgba(0,255,163,.014);animation-delay:2.6s}
+@keyframes pring{0%{opacity:0;transform:translate(-50%,-50%) scale(.88)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.14)}}
+#back-btn{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,255,163,.55);background:rgba(0,0,0,.72);border:1px solid rgba(0,255,163,.2);padding:9px 22px;cursor:pointer;z-index:15;display:flex;align-items:center;gap:10px;transition:all .2s;backdrop-filter:blur(8px);text-decoration:none}
+#back-btn:hover{color:rgba(0,255,163,.95);border-color:rgba(0,255,163,.5)}
+/* node info (right) */
+#nodeinfo{position:absolute;right:36px;top:50%;transform:translateY(-50%);width:230px;z-index:6;pointer-events:none;border:1px solid rgba(0,255,163,.16);background:rgba(0,0,0,.7);backdrop-filter:blur(6px);padding:18px 20px;opacity:0;transition:opacity .3s}
+#nodeinfo.vis{opacity:1}
+.ni-ph{font-size:7px;letter-spacing:.24em;color:rgba(0,212,255,.7);text-transform:uppercase;margin-bottom:10px}
+.ni-name{font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.04em;color:#fff;margin-bottom:12px;line-height:1.4}
+.ni-desc{font-size:9px;color:rgba(232,255,245,.55);letter-spacing:.04em;line-height:2;margin-bottom:12px}
+.ni-state{font-size:7px;letter-spacing:.2em;text-transform:uppercase;padding:3px 9px;border-radius:2px;display:inline-block}
+/* info trigger */
+#info-trigger{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;padding-bottom:20px;z-index:8;pointer-events:none}
+#info-btn{font-family:var(--fm);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(0,255,163,.4);background:transparent;border:none;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;pointer-events:all;transition:color .25s}
+#info-btn:hover{color:rgba(0,255,163,.85)}
+#info-btn .arr{font-size:12px;animation:arr 2s ease infinite}
+@keyframes arr{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+/* info panel */
+#info-panel{position:absolute;bottom:-100%;left:0;right:0;height:90vh;z-index:25;background:rgba(4,6,5,.985);border-top:1px solid rgba(0,255,163,.28);transition:bottom .6s cubic-bezier(.23,1,.32,1);overflow-y:auto;overflow-x:hidden}
+#info-panel.open{bottom:0}
+#info-panel::-webkit-scrollbar{width:3px}#info-panel::-webkit-scrollbar-thumb{background:rgba(0,255,163,.18)}
+.ip-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(4,6,5,.96);border-bottom:1px solid rgba(0,255,163,.1);backdrop-filter:blur(12px)}
+.ip-head-title{font-family:var(--fm);font-size:8px;color:rgba(0,255,163,.6);letter-spacing:.24em;text-transform:uppercase}
+.ip-close{font-family:var(--fm);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:rgba(0,255,163,.45);background:none;border:1px solid rgba(0,255,163,.18);padding:7px 15px;cursor:pointer;transition:all .2s}
+.ip-close:hover{color:rgba(0,255,163,.95);border-color:rgba(0,255,163,.45)}
+.ip-body{padding:62px 80px 110px;max-width:1080px;margin:0 auto}
+.ip-hero{text-align:center;margin-bottom:72px}
+.ip-pre{font-family:var(--fm);font-size:8px;color:rgba(0,255,163,.4);letter-spacing:.4em;text-transform:uppercase;display:block;margin-bottom:26px}
+.ip-main-title{font-family:var(--fs);font-weight:300;font-size:clamp(34px,6vw,58px);color:#fff;letter-spacing:.02em;line-height:1.1;margin-bottom:24px}
+.ip-main-title em{color:var(--g);font-style:normal}
+.ip-tagline{font-family:var(--fm);font-size:12px;color:rgba(232,255,245,.45);letter-spacing:.08em;line-height:2;max-width:620px;margin:0 auto}
+.ip-div{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,163,.2) 30%,rgba(0,255,163,.2) 70%,transparent);margin:60px 0}
+.ip-sec-lbl{font-family:var(--fm);font-size:8px;color:rgba(0,255,163,.45);letter-spacing:.28em;text-transform:uppercase;display:flex;align-items:center;gap:16px;margin-bottom:36px}
+.ip-sec-lbl::after{content:'';flex:1;height:1px;background:rgba(0,255,163,.08)}
+/* phases timeline */
+.ip-phases{display:flex;flex-direction:column;gap:3px;margin-bottom:56px}
+.ph{display:grid;grid-template-columns:140px 1fr;gap:24px;padding:26px 28px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.012);position:relative;transition:border-color .3s,background .3s}
+.ph:hover{border-color:rgba(0,255,163,.2);background:rgba(0,255,163,.025)}
+.ph.live{border-color:rgba(0,255,163,.18)}
+.ph.live::before,.ph.soon::before{content:'';position:absolute;top:0;left:0;bottom:0;width:2px}
+.ph.live::before{background:var(--g);box-shadow:0 0 12px var(--g)}
+.ph.soon::before{background:var(--c);box-shadow:0 0 12px var(--c)}
+.ph-when{font-family:var(--fm);font-size:9px;letter-spacing:.16em;color:rgba(232,255,245,.4);text-transform:uppercase}
+.ph-state{font-size:7px;letter-spacing:.2em;text-transform:uppercase;padding:3px 8px;border-radius:2px;display:inline-block;margin-top:10px}
+.st-live{color:var(--g);background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.2)}
+.st-soon{color:var(--c);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2)}
+.st-future{color:rgba(255,255,255,.4);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}
+.ph-title{font-family:var(--fd);font-weight:700;font-size:14px;letter-spacing:.04em;color:#fff;margin-bottom:12px}
+.ph-list{font-family:var(--fm);font-size:10px;color:rgba(232,255,245,.5);letter-spacing:.04em;line-height:2}
+.ph-list .ico{color:var(--g);margin-right:8px}
+.ph.soon .ph-list .ico,.ph.future .ph-list .ico{color:rgba(255,255,255,.25)}
+/* pillars */
+.ip-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:56px}
+.ip-pill{border:1px solid rgba(0,255,163,.1);padding:26px 22px;background:rgba(0,255,163,.02);position:relative;overflow:hidden}
+.ip-pill::after{content:attr(data-n);position:absolute;bottom:12px;right:18px;font-family:var(--fd);font-weight:800;font-size:30px;color:rgba(0,255,163,.06);line-height:1;pointer-events:none}
+.ip-pill-title{font-family:var(--fd);font-weight:700;font-size:12px;color:rgba(0,255,163,.78);letter-spacing:.06em;margin-bottom:14px}
+.ip-pill-body{font-family:var(--fm);font-size:9px;color:rgba(232,255,245,.45);letter-spacing:.04em;line-height:2}
+.ip-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:56px}
+.ip-tag{font-family:var(--fm);font-size:8px;color:rgba(0,255,163,.55);letter-spacing:.14em;border:1px solid rgba(0,255,163,.16);padding:6px 14px;background:rgba(0,255,163,.03)}
+.ip-quote{text-align:center;padding:48px 20px;border-top:1px solid rgba(0,255,163,.07);border-bottom:1px solid rgba(0,255,163,.07);margin-bottom:56px}
+.ip-quote-txt{font-family:var(--fs);font-weight:300;font-size:clamp(18px,3vw,26px);color:rgba(232,255,245,.7);letter-spacing:.02em;line-height:1.7;max-width:720px;margin:0 auto}
+.ip-quote-txt em{color:var(--g);font-style:normal}
+.ip-cta{text-align:center;padding-top:18px}
+.ip-cta-lbl{font-family:var(--fm);font-size:9px;color:rgba(232,255,245,.3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:20px;display:block}
+.ip-cta-btn{display:inline-block;font-family:var(--fm);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#04120c;background:rgba(0,255,163,.9);padding:14px 34px;cursor:pointer;text-decoration:none;border:none;transition:background .2s,box-shadow .2s}
+.ip-cta-btn:hover{background:#00ffa3;box-shadow:0 0 40px rgba(0,255,163,.35)}
+.ip-cta-btn.ghost{background:transparent;color:rgba(0,255,163,.8);border:1px solid rgba(0,255,163,.3);margin-left:10px}
+@media(max-width:768px){
+  .ip-body{padding:40px 18px 80px}.ip-pillars{grid-template-columns:1fr}
+  .ph{grid-template-columns:1fr;gap:12px}.htr,.hbl,.hbr{display:none}#nodeinfo{display:none}
+}
+</style>
+</head>
+<body>
+<div id="main">
+<canvas id="c"></canvas>
+<div class="pring"></div><div class="pring"></div><div class="pring"></div>
+<div class="scanline"></div>
+<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+
+<div class="hud htl">
+  <div class="h-title">PULSΞ</div>
+  <div class="h-sub">Roadmap Core v1</div>
+  <div class="h-hint">HOVER NODE — PREVIEW<br>CLICK NODE — DETAILS<br>SCROLL UP — FULL ROADMAP</div>
+</div>
+<div class="hud htr">
+  <div class="h-stat">PHASES <b id="h-n">4</b><br>SHIPPED <b id="h-s">2</b><br>CHAIN <b>SOLANA</b><br>STATUS <b style="color:var(--g)">&#9679; BUILDING</b></div>
+</div>
+<div class="hud hbl">
+  <div class="h-stat">HOLD-TO-ACCESS // $PLSX<br>RADAR · AGENT · STAKING<br>AI MARKET INTELLIGENCE</div>
+</div>
+<div class="hud hbr"><div class="h-stat"><b id="h-fps">—</b> FPS</div></div>
+
+<div id="nodeinfo">
+  <div class="ni-ph" id="ni-ph">—</div>
+  <div class="ni-name" id="ni-name">—</div>
+  <div class="ni-desc" id="ni-desc">—</div>
+  <div class="ni-state" id="ni-state">—</div>
+</div>
+
+<a id="back-btn" href="dashboard"><span>&#9668;</span> Back to terminal</a>
+
+<div id="info-trigger">
+  <button id="info-btn" onclick="openInfoPanel()">
+    <div class="arr">&#9650;</div>
+    Explore full roadmap
+  </button>
+</div>
+
+<div id="info-panel">
+  <div class="ip-head">
+    <span class="ip-head-title">&#9632; PULSΞ // Roadmap</span>
+    <button class="ip-close" onclick="closeInfoPanel()">&#9660; Close</button>
+  </div>
+  <div class="ip-body">
+    <div class="ip-hero">
+      <span class="ip-pre">&#9632; AI Market Intelligence // Solana // $PLSX</span>
+      <div class="ip-main-title">One terminal. One token.<br>Built for <em>everyone</em>.</div>
+      <p class="ip-tagline">
+        PULSΞ turns raw market noise into structured, real-time clarity.<br>
+        The roadmap below ships that promise in phases — Radar and the dedicated<br>
+        Agent are live; prediction staking is next.
+      </p>
+    </div>
+
+    <div class="ip-div"></div>
+
+    <div class="ip-sec-lbl">Delivery Phases</div>
+    <div class="ip-phases" id="phaseList"></div>
+
+    <div class="ip-sec-lbl">$PLSX — Three Ways To Use It</div>
+    <div class="ip-pillars">
+      <div class="ip-pill" data-n="01">
+        <div class="ip-pill-title">Paid intelligence</div>
+        <div class="ip-pill-body">Hold $PLSX to unlock premium Radar — signal-strength ranking with full breakdowns: momentum, whale flows, social mentions, liquidity shifts.</div>
+      </div>
+      <div class="ip-pill" data-n="02">
+        <div class="ip-pill-title">Dedicated Agent</div>
+        <div class="ip-pill-body">Your own AI tuned to your strategy. It runs autonomous missions while you sleep and answers "is this rotation real?" with a current read.</div>
+      </div>
+      <div class="ip-pill" data-n="03">
+        <div class="ip-pill-title">Prediction staking</div>
+        <div class="ip-pill-body">Put conviction on the line. Stake on a call, earn when you're right. Skin in the game, settled on-chain. Launching after audit.</div>
+      </div>
+    </div>
+
+    <div class="ip-sec-lbl">Technical Substrate</div>
+    <div class="ip-tags">
+      <span class="ip-tag">SOLANA</span><span class="ip-tag">SPL $PLSX</span><span class="ip-tag">HOLD-TO-ACCESS TIERS</span>
+      <span class="ip-tag">SIGN-IN WITH SOLANA</span><span class="ip-tag">FASTAPI</span><span class="ip-tag">POSTGRES + REDIS</span>
+      <span class="ip-tag">LLM AGENT</span><span class="ip-tag">LIVE COINGECKO</span><span class="ip-tag">DEXSCREENER</span>
+      <span class="ip-tag">ON-CHAIN ORACLE</span><span class="ip-tag">ANCHOR (STAKING)</span>
+    </div>
+
+    <div class="ip-div"></div>
+
+    <div class="ip-quote">
+      <div class="ip-quote-txt">"The market feels. <em>We read.</em><br>A current read — not a training-data guess."</div>
+    </div>
+
+    <div class="ip-cta">
+      <span class="ip-cta-lbl">Ready to use the terminal?</span>
+      <a href="radar" class="ip-cta-btn">&#9658; Open Radar</a>
+      <a href="staking" class="ip-cta-btn ghost">View staking</a>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+'use strict';
+// ── Roadmap phase data ──
+const PHASES = [
+  { ph:'Phase 1', when:'Shipped', state:'live', title:'Wallet auth + hold-to-access tiers',
+    desc:'Sign-In With Solana, $PLSX balance tiers, Radar gating.',
+    items:['Sign-In With Solana (Phantom)','$PLSX balance → free / holder / pro','Premium Radar depth + AI breakdown'] },
+  { ph:'Phase 2', when:'Shipped', state:'live', title:'Dedicated Agent',
+    desc:'Personal AI strategy + autonomous missions.',
+    items:['Per-user strategy prompt + watchlist','Autonomous missions on a schedule','Live market context, not training-data'] },
+  { ph:'Phase 3', when:'Next', state:'soon', title:'Prediction staking',
+    desc:'Stake on a call, earn when right. On-chain.',
+    items:['Paper staking to validate resolution','Anchor escrow program + oracle','Audit + legal before mainnet'] },
+  { ph:'Phase 4', when:'Future', state:'future', title:'Open intelligence network',
+    desc:'Shared signals, reputation, public API.',
+    items:['Reputation from staking accuracy','Public signals API','Community-curated markets'] },
+];
+
+// render phase list in panel
+document.getElementById('phaseList').innerHTML = PHASES.map(p=>`
+  <div class="ph ${p.state}">
+    <div>
+      <div class="ph-when">${p.when}</div>
+      <div class="ph-state ${p.state==='live'?'st-live':p.state==='soon'?'st-soon':'st-future'}">${p.state==='live'?'● Live':p.state==='soon'?'◇ Coming soon':'○ Planned'}</div>
+    </div>
+    <div>
+      <div class="ph-title">${p.ph} — ${p.title}</div>
+      <div class="ph-list">${p.items.map(i=>`<div><span class="ico">${p.state==='live'?'◆':'◇'}</span>${i}</div>`).join('')}</div>
+    </div>
+  </div>`).join('');
+
+// ── Canvas node-graph core ──
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let W,H,DPR,cx,cy,t=0,hoverIdx=-1;
+const COL={live:[0,255,163],soon:[0,212,255],future:[150,160,170]};
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=cv.clientWidth=innerWidth; H=cv.clientHeight=innerHeight; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); cx=W/2; cy=H/2; }
+addEventListener('resize',resize); resize();
+
+// node layout: gentle arc across the core
+const nodes = PHASES.map((p,i)=>({ p, baseA:(-Math.PI*0.62)+(i/(PHASES.length-1))*(Math.PI*1.24), r:Math.min(W,H)*0.30 }));
+function nodePos(n,i){ const a=n.baseA+Math.sin(t*0.4+i)*0.02; return { x:cx+Math.cos(a)*n.r, y:cy+Math.sin(a)*n.r*0.62 }; }
+
+function draw(){
+  t+=0.016; ctx.clearRect(0,0,W,H);
+  const pts = nodes.map((n,i)=>nodePos(n,i));
+  // veins between consecutive phases
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1],c=COL[nodes[i].p.state];
+    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},0.18)`; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    // flowing particle
+    const fp=(t*0.18+i*0.25)%1; const px=a.x+(b.x-a.x)*fp, py=a.y+(b.y-a.y)*fp;
+    ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},0.9)`; ctx.beginPath(); ctx.arc(px,py,2,0,7); ctx.fill();
+  }
+  // nodes
+  nodes.forEach((n,i)=>{
+    const {x,y}=pts[i], c=COL[n.p.state], hov=i===hoverIdx;
+    const pulse=1+Math.sin(t*2+i)*0.12, base=n.p.state==='live'?9:7;
+    const rr=(hov?base+5:base)*pulse;
+    // glow
+    const g=ctx.createRadialGradient(x,y,0,x,y,rr*3.4);
+    g.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${n.p.state==='future'?0.18:0.42})`); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,rr*3.4,0,7); ctx.fill();
+    // core
+    ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${n.p.state==='future'?0.5:0.95})`;
+    ctx.beginPath(); ctx.arc(x,y,rr,0,7); ctx.fill();
+    if(n.p.state==='soon'||hov){ ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},0.5)`; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(x,y,rr+6+Math.sin(t*3)*2,0,7); ctx.stroke(); }
+    // label
+    ctx.font='600 10px IBM Plex Mono, monospace'; ctx.textAlign='center';
+    ctx.fillStyle=hov?'#fff':`rgba(${c[0]},${c[1]},${c[2]},0.85)`;
+    ctx.fillText(n.p.ph.toUpperCase(), x, y+rr+18);
+  });
+  document.getElementById('h-fps').textContent=Math.round(1/0.016);
+  requestAnimationFrame(draw);
+}
+draw();
+
+// hover + click
+function pick(mx,my){ const pts=nodes.map((n,i)=>nodePos(n,i)); for(let i=0;i<pts.length;i++){ const dx=pts[i].x-mx,dy=pts[i].y-my; if(Math.hypot(dx,dy)<26) return i; } return -1; }
+cv.addEventListener('mousemove',e=>{
+  const r=cv.getBoundingClientRect(); hoverIdx=pick(e.clientX-r.left,e.clientY-r.top);
+  cv.style.cursor=hoverIdx>=0?'pointer':'default';
+  const box=document.getElementById('nodeinfo');
+  if(hoverIdx>=0){ const p=nodes[hoverIdx].p;
+    document.getElementById('ni-ph').textContent=p.ph+' · '+p.when;
+    document.getElementById('ni-name').textContent=p.title;
+    document.getElementById('ni-desc').textContent=p.desc;
+    const st=document.getElementById('ni-state'); st.textContent=p.state==='live'?'● Live':p.state==='soon'?'◇ Coming soon':'○ Planned';
+    st.className='ni-state '+(p.state==='live'?'st-live':p.state==='soon'?'st-soon':'st-future');
+    box.classList.add('vis');
+  } else box.classList.remove('vis');
+});
+cv.addEventListener('click',e=>{ const r=cv.getBoundingClientRect(); if(pick(e.clientX-r.left,e.clientY-r.top)>=0) openInfoPanel(); });
+
+// panel
+function openInfoPanel(){ document.getElementById('info-panel').classList.add('open'); }
+function closeInfoPanel(){ document.getElementById('info-panel').classList.remove('open'); }
+addEventListener('keydown',e=>{ if(e.key==='Escape') closeInfoPanel(); });
+</script>
+</body>
+</html>

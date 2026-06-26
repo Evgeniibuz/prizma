@@ -169,10 +169,10 @@ const API = {
     return null;
   },
 
-  async radarBreakdown(symbol) {
+  async radarBreakdown(symbol, includeAi = 0) {
     try {
       if (await this._backendAvailable()) {
-        return await this._req('GET', `/api/radar/breakdown/${encodeURIComponent(symbol)}`);
+        return await this._req('GET', `/api/radar/breakdown/${encodeURIComponent(symbol)}?include_ai=${includeAi ? 1 : 0}`);
       }
     } catch {}
     return null;

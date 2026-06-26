@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PULSΞ — Docs</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .doc{position:relative;z-index:10;max-width:820px;margin:0 auto;padding:80px 24px 120px}
+  .doc-bc{font-family:var(--fm);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--w20);margin-bottom:24px}
+  .doc-bc a{color:var(--g);text-decoration:none}
+  .doc h1{font-family:var(--fs);font-weight:300;font-size:clamp(32px,6vw,52px);color:#fff;letter-spacing:1px;margin-bottom:8px}
+  .doc .lead{font-family:var(--fm);font-size:12px;color:var(--w45);line-height:1.8;margin-bottom:40px}
+  .doc h2{font-family:var(--fm);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--g);margin:44px 0 14px}
+  .doc p,.doc li{font-family:var(--fm);font-size:12px;line-height:2;color:var(--w70);letter-spacing:.3px}
+  .doc ul{margin:8px 0 8px 18px}.doc li{margin-bottom:6px}
+  .doc strong{color:#fff;font-weight:500}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+  .tier{border:1px solid var(--w8);border-radius:2px;padding:18px;background:rgba(0,0,0,.5)}
+  .tier h3{font-family:var(--fd);font-weight:700;font-size:13px;margin-bottom:8px;letter-spacing:1px}
+  .tier .req{font-family:var(--fm);font-size:9px;color:var(--w20);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+  .tier ul{margin-left:14px}.tier li{font-size:10px;line-height:1.9}
+  .step{display:flex;gap:14px;margin-bottom:14px}
+  .step .n{flex-shrink:0;width:24px;height:24px;border:1px solid rgba(0,255,163,.3);border-radius:50%;color:var(--g);font-family:var(--fm);font-size:11px;display:flex;align-items:center;justify-content:center}
+  .doc .foot{margin-top:56px;padding-top:24px;border-top:1px solid var(--w8);font-size:10px;color:var(--w20);letter-spacing:1px}
+  .doc .foot a{text-decoration:none}
+  @media(max-width:640px){.tiers{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="bg" class="blur-sm"></div>
+<div class="overlay"></div>
+<div class="doc">
+  <div class="doc-bc"><a href="/">PULSΞ</a> / Docs</div>
+  <h1>Docs</h1>
+  <p class="lead">PULSΞ is an AI market-intelligence terminal: a Radar that ranks tokens by signal strength, an AI agent that reads the market in real time, and prediction staking — all unlocked with one token, <strong>$PLSX</strong>.</p>
+
+  <h2>The terminal</h2>
+  <ul>
+    <li><strong>Radar</strong> — a live scan that scores tokens by momentum, volume, acceleration, and social velocity, and explains every score.</li>
+    <li><strong>Agent</strong> — ask "is this rotation real?" and get a current read built on live data, not a training-data guess.</li>
+    <li><strong>Dashboard</strong> — markets, signals, watchlist, and cashtag sentiment in one screen.</li>
+  </ul>
+
+  <h2>$PLSX — hold-to-access</h2>
+  <p>$PLSX is a Solana (SPL) token. You unlock features by <strong>holding</strong> it — there is no transaction per request, just a cached balance read. Link a wallet (Sign-In With Solana) and your tier resolves automatically.</p>
+  <div class="tiers">
+    <div class="tier"><h3 style="color:var(--w45)">Free</h3><div class="req">Hold 0</div><ul><li>Radar teaser feed</li><li>Top signals</li><li>Agent chat (limited)</li></ul></div>
+    <div class="tier"><h3 style="color:var(--c)">Holder</h3><div class="req">Hold ≥ threshold</div><ul><li>Full Radar depth</li><li>AI breakdowns</li><li>Signal history</li></ul></div>
+    <div class="tier"><h3 style="color:var(--g)">Pro</h3><div class="req">Hold ≥ higher threshold</div><ul><li>Dedicated Agent</li><li>Autonomous missions</li><li>Reduced staking fees</li></ul></div>
+  </div>
+
+  <h2>Connect a wallet</h2>
+  <div class="step"><div class="n">1</div><div>Open <a href="radar" style="color:var(--c);text-decoration:none">Radar</a> and click <strong>Connect Wallet</strong>.</div></div>
+  <div class="step"><div class="n">2</div><div>Approve the connection in Phantom and sign the one-time message (free, authorizes no transaction).</div></div>
+  <div class="step"><div class="n">3</div><div>Your tier badge updates instantly based on your $PLSX balance.</div></div>
+
+  <h2>Prediction staking</h2>
+  <p>Phase 3 (coming soon): stake $PLSX on a market call and earn when you're right — settled on-chain. We ship paper staking first to validate resolution, then an audited Anchor escrow with an oracle. See the <a href="roadmap" style="color:var(--c);text-decoration:none">roadmap</a> and <a href="staking" style="color:var(--c);text-decoration:none">staking preview</a>.</p>
+
+  <h2>Disclaimer</h2>
+  <p>PULSΞ is informational, not financial advice. Crypto is volatile; your decisions are your own.</p>
+
+  <div class="foot"><a href="/" style="color:var(--g)">← Back to PULSΞ</a> · <a href="roadmap" style="color:var(--c)">Roadmap</a> · <a href="privacy" style="color:var(--c)">Privacy</a></div>
+</div>
+<script src="config.js"></script>
+<script src="bg.js"></script>
+</body>
+</html>

@@ -128,6 +128,9 @@ app = FastAPI(
     description="Crypto market intelligence platform with AI agent",
     version="2.2.0",
     lifespan=lifespan,
+    # Move interactive API docs off /docs so the product docs page can use it.
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────
@@ -239,6 +242,24 @@ async def radar():
 @app.get("/staking")
 async def predictions():
     return _serve_frontend("predictions.html")
+
+
+@app.get("/roadmap")
+@app.get("/roadmap.html")
+async def roadmap():
+    return _serve_frontend("roadmap.html")
+
+
+@app.get("/privacy")
+@app.get("/privacy.html")
+async def privacy():
+    return _serve_frontend("privacy.html")
+
+
+@app.get("/docs")
+@app.get("/docs.html")
+async def docs():
+    return _serve_frontend("docs.html")
 
 
 # ── Health ────────────────────────────────────────────────────────────────
