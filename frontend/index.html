@@ -637,6 +637,22 @@ document.querySelectorAll('#registerModal .inp').forEach(input => {
     if (e.key === 'Enter') handleRegister();
   });
 });
+
+function copyCA(){
+  const el = document.getElementById("caInput");
+  if(!el.value) return;
+
+  navigator.clipboard.writeText(el.value);
+
+  const btn = document.querySelector(".ca-copy");
+  const old = btn.innerText;
+
+  btn.innerText = "COPIED";
+
+  setTimeout(()=>{
+    btn.innerText = old;
+  }, 900);
+}
 </script>
 </body>
 </html>
