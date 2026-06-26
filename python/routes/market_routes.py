@@ -107,7 +107,7 @@ async def get_simple_price(ids: str = "bitcoin", vs_currencies: str = "usd"):
 @router.get("")
 async def get_market_data():
     """Market data for the eight supported coins. Cached 30s."""
-    if _cache["market"] and (time.time() - _cache["ts"]) < 30:
+    if _cache["market"] and (time.time() - _cache["ts"]) < 300:
         return _cache["market"]
 
     try:
