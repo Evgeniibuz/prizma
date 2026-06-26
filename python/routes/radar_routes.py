@@ -17,6 +17,7 @@ from typing import Any, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import inspect as sa_inspect
 
 try:
     from openai import AsyncOpenAI
@@ -73,7 +74,18 @@ def _now_iso() -> str:
 def _client_key(request: Request, user: User) -> str:
     xff = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
     ip = xff or (request.client.host if request.client else "") or "unknown"
-    return f"u:{getattr(user, 'id', '')}:{ip}"
+
+    user_id = ""
+    try:
+        state = sa_inspect(user)
+        if state.identity:
+            user_id = str(state.identity[0])
+        else:
+            user_id = str(user.__dict__.get("id", ""))
+    except Exception:
+        user_id = str(getattr(user, "__dict__", {}).get("id", ""))
+
+    return f"u:{user_id}:{ip}"
 
 
 async def _get_redis():
