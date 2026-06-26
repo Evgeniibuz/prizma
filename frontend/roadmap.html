@@ -235,7 +235,7 @@ document.getElementById('phaseList').innerHTML = PHASES.map(p=>`
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 let W,H,DPR,cx,cy,t=0,hoverIdx=-1;
 const COL={live:[0,255,163],soon:[0,212,255],future:[150,160,170]};
-function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=cv.clientWidth=innerWidth; H=cv.clientHeight=innerHeight; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); cx=W/2; cy=H/2; }
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight; cv.style.width=W+'px'; cv.style.height=H+'px'; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); cx=W/2; cy=H/2; }
 addEventListener('resize',resize); resize();
 
 // node layout: gentle arc across the core
