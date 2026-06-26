@@ -31,6 +31,8 @@ from routes import (
     logs_router,
     dex_router,
     chain_whale_router,
+    wallet_router,
+    predictions_router,
 )
 
 # ── Logging setup ─────────────────────────────────────────────────────────
@@ -46,6 +48,13 @@ load_dotenv()
 # ── Service singletons (populated in lifespan) ─────────────────────────────
 sentiment_service: SentimentService | None = None
 _cleanup_task: asyncio.Task | None = None
+_agent_task: asyncio.Task | None = None
+
+# How often the autonomous agent scheduler wakes up to check for due missions.
+AGENT_SCHEDULER_INTERVAL = int(os.getenv("AGENT_SCHEDULER_INTERVAL_SEC", "300"))
+AGENT_SCHEDULER_ENABLED = os.getenv("AGENT_SCHEDULER_ENABLED", "true").lower() in {
+    "1", "true", "yes",
+}
 
 
 async def _periodic_cleanup() -> None:
@@ -63,10 +72,25 @@ async def _periodic_cleanup() -> None:
             logger.warning("Cleanup task error: %s", exc)
 
 
+async def _agent_scheduler_loop() -> None:
+    """Background task: run due dedicated-agent missions on their intervals."""
+    from services.agent_scheduler import run_due_agents
+
+    while True:
+        try:
+            await asyncio.sleep(AGENT_SCHEDULER_INTERVAL)
+            await run_due_agents()
+        except asyncio.CancelledError:
+            logger.info("Agent scheduler cancelled")
+            break
+        except Exception as exc:
+            logger.warning("Agent scheduler error: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown handlers."""
-    global sentiment_service, _cleanup_task
+    global sentiment_service, _cleanup_task, _agent_task
 
     await init_db()
 
@@ -76,14 +100,19 @@ async def lifespan(app: FastAPI):
     _cleanup_task = asyncio.create_task(_periodic_cleanup())
     logger.info("Started periodic signals cleanup (every 6h)")
 
+    if AGENT_SCHEDULER_ENABLED:
+        _agent_task = asyncio.create_task(_agent_scheduler_loop())
+        logger.info("Started autonomous agent scheduler (every %ds)", AGENT_SCHEDULER_INTERVAL)
+
     yield
 
-    if _cleanup_task:
-        _cleanup_task.cancel()
-        try:
-            await _cleanup_task
-        except asyncio.CancelledError:
-            pass
+    for task in (_cleanup_task, _agent_task):
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
     if sentiment_service:
         try:
@@ -150,6 +179,8 @@ app.include_router(radar_router)
 app.include_router(logs_router)
 app.include_router(dex_router)
 app.include_router(chain_whale_router)
+app.include_router(wallet_router)
+app.include_router(predictions_router)
 
 
 # ── Frontend file routes ───────────────────────────────────────────────────
@@ -201,6 +232,13 @@ async def agents():
 @app.get("/radar.html")
 async def radar():
     return _serve_frontend("radar.html")
+
+
+@app.get("/predictions")
+@app.get("/predictions.html")
+@app.get("/staking")
+async def predictions():
+    return _serve_frontend("predictions.html")
 
 
 # ── Health ────────────────────────────────────────────────────────────────

@@ -254,4 +254,80 @@ const API = {
     } catch {}
     return null;
   },
+
+  // ── Wallet / $PLSX tiers (Sign-In With Solana) ──────────────────
+  _solanaProvider() {
+    return (window.phantom && window.phantom.solana) || window.solana || null;
+  },
+
+  async walletStatus() {
+    try {
+      if (this.isLoggedIn() && await this._backendAvailable()) {
+        return await this._req('GET', '/api/wallet/status');
+      }
+    } catch (e) { console.warn('walletStatus:', e); }
+    return null;
+  },
+
+  // Connect Phantom, sign the backend nonce, link the wallet. Returns tier info.
+  async connectWallet() {
+    const provider = this._solanaProvider();
+    if (!provider || !provider.isPhantom) {
+      throw { message: 'Phantom wallet not found. Install it from phantom.app' };
+    }
+    const resp = await provider.connect();
+    const address = resp.publicKey.toString();
+
+    const { message } = await this._req('GET', `/api/wallet/nonce?address=${encodeURIComponent(address)}`);
+    const encoded = new TextEncoder().encode(message);
+    const signed = await provider.signMessage(encoded, 'utf8');
+    const signature = bs58encode(signed.signature);
+
+    return await this._req('POST', '/api/wallet/verify', { address, signature });
+  },
+
+  async unlinkWallet() {
+    try { return await this._req('DELETE', '/api/wallet/unlink'); } catch { return null; }
+  },
+
+  // ── Dedicated Agent (pro tier) ──────────────────────────────────
+  async agentGetConfig() {
+    try { return await this._req('GET', '/api/agent/config'); } catch (e) { return { error: e }; }
+  },
+  async agentSaveConfig(cfg) {
+    return await this._req('POST', '/api/agent/config', cfg);
+  },
+  async agentRunNow() {
+    return await this._req('POST', '/api/agent/run');
+  },
+  async agentRuns(limit = 20) {
+    try { const d = await this._req('GET', `/api/agent/runs?limit=${limit}`); return d?.runs || []; }
+    catch { return []; }
+  },
+
+  // ── Prediction staking (coming soon) ────────────────────────────
+  async predictionsStatus() {
+    try { return await this._req('GET', '/api/predictions/status'); } catch { return null; }
+  },
 };
+
+// Minimal base58 encoder (Bitcoin/Solana alphabet) for signing payloads.
+function bs58encode(bytes) {
+  const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  const arr = Array.from(bytes);
+  let zeros = 0;
+  while (zeros < arr.length && arr[zeros] === 0) zeros++;
+  const digits = [0];
+  for (let i = zeros; i < arr.length; i++) {
+    let carry = arr[i];
+    for (let j = 0; j < digits.length; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry > 0) { digits.push(carry % 58); carry = (carry / 58) | 0; }
+  }
+  let out = '1'.repeat(zeros);
+  for (let k = digits.length - 1; k >= 0; k--) out += ALPHABET[digits[k]];
+  return out;
+}

@@ -111,7 +111,10 @@
     <div class="tb-l"><a class="tb-logo" href="dashboard">PULSΞ</a><div class="tb-cr">Dashboard / <span>Radar</span></div></div>
     <div class="tb-r">
       <div class="tb-t" id="clock"></div>
-      <div class="tb-t" id="userDisplay" style="margin-right:16px"></div>
+      <div class="tb-t" id="userDisplay" style="margin-right:8px"></div>
+      <span id="tierBadge" title="Your $PLSX access tier" style="display:none;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:4px 9px;border-radius:2px"></span>
+      <button class="btn btn-n" id="walletBtn" onclick="connectWallet()" style="border-color:rgba(0,212,255,.3);color:var(--c)">Connect Wallet</button>
+      <a class="btn btn-n" href="predictions">Staking</a>
       <a class="btn btn-n" href="dashboard">Dashboard</a>
       <a class="btn btn-n" href="https://x.com/pulselabs_hq" target="_blank" rel="noopener">Twitter</a>
       <a class="btn btn-n" href="https://t.me/pulseofficialchannel" target="_blank" rel="noopener">Telegram</a>
@@ -183,6 +186,40 @@ initProfile(); closeProfileOnClickOut(); startClock(document.getElementById('clo
   userEl.textContent = username;
   userEl.style.color = 'var(--g)';
 })();
+
+// ── Wallet / $PLSX tier ─────────────────────────────────────────
+const TIER_COLOR = { free: 'var(--w45)', holder: 'var(--c)', pro: 'var(--g)' };
+function renderTier(status) {
+  const badge = document.getElementById('tierBadge');
+  const btn = document.getElementById('walletBtn');
+  if (!status) return;
+  const tier = status.tier || 'free';
+  badge.style.display = 'inline-block';
+  badge.textContent = tier;
+  badge.style.color = TIER_COLOR[tier] || 'var(--w45)';
+  badge.style.border = `1px solid ${TIER_COLOR[tier] || 'var(--w8)'}`;
+  if (status.linked && status.address) {
+    btn.textContent = status.address.slice(0, 4) + '…' + status.address.slice(-4);
+    btn.style.color = 'var(--g)';
+    btn.style.borderColor = 'rgba(0,255,163,.3)';
+  }
+}
+async function refreshTier() { renderTier(await API.walletStatus()); }
+async function connectWallet() {
+  const btn = document.getElementById('walletBtn');
+  const prev = btn.textContent;
+  btn.textContent = 'Connecting…';
+  try {
+    const res = await API.connectWallet();
+    renderTier(res);
+    if (typeof load === 'function') load();
+    else if (typeof refresh === 'function') refresh();
+  } catch (e) {
+    btn.textContent = prev;
+    alert((e && e.message) || 'Wallet connection failed');
+  }
+}
+refreshTier();
 
 // ═══════════════════════════════════════
 // RADAR ENGINE

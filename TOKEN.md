@@ -1,4 +1,4 @@
-# $PULSE Token — Utility & Implementation Plan
+# $PLSX Token — Utility & Implementation Plan
 
 > One token. Three ways to use it inside PULSΞ.
 > Chain: **Solana** · Gating model: **hold-to-access** · Token: *not minted yet (config-driven)*
@@ -138,7 +138,7 @@ class AgentRun(Base):          # mission history
 
 ## Phase 3 — Prediction staking  🔴 (real money — treat with care)
 
-**Goal:** user stakes $PULSE on a prediction; if resolved correct, earns from
+**Goal:** user stakes $PLSX on a prediction; if resolved correct, earns from
 the pool. This is the only part with on-chain money and the highest risk.
 
 ### Architecture
@@ -153,7 +153,7 @@ Frontend (Phantom)  →  Anchor program (Solana)  →  escrow PDA per market
 ### Smart contract (Anchor / Rust — separate workstream)
 
 - `create_market(question, resolve_at, price_source)` — admin/curated first.
-- `stake(market, side, amount)` — transfers $PULSE to escrow PDA.
+- `stake(market, side, amount)` — transfers $PLSX to escrow PDA.
 - `resolve(market, outcome)` — only callable by oracle authority.
 - `claim(market)` — winners withdraw pro-rata; protocol fee skimmed.
 

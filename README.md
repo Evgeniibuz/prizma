@@ -105,6 +105,29 @@ returns an empty/error payload but the rest of the app still works.
 | `TWITTER_BEARER_TOKEN`  | Real cashtag mentions + sentiment       |
 | `COINGECKO_API_KEY`     | Higher CoinGecko rate limits            |
 
+## $PLSX token (hold-to-access tiers)
+
+The token utility is config-driven and **runs without a minted token**: while
+`TOKEN_GATING_ENABLED=false` (the default) or `PULSE_TOKEN_MINT` is empty,
+every wallet resolves to the top `pro` tier so the full product is usable for
+development and demos. Flip the flag and set the mint to go live.
+
+| Variable                    | Default                              | Purpose                                   |
+| --------------------------- | ------------------------------------ | ----------------------------------------- |
+| `TOKEN_GATING_ENABLED`      | `false`                              | Master switch for hold-to-access gating   |
+| `PULSE_TOKEN_MINT`          | _(empty)_                            | SPL mint address of $PLSX                  |
+| `SOLANA_RPC_URL`            | `https://api.mainnet-beta.solana.com`| RPC used to read balances                 |
+| `TIER_HOLDER_MIN`           | `1000`                               | $PLSX needed for `holder` tier             |
+| `TIER_PRO_MIN`              | `25000`                              | $PLSX needed for `pro` tier                |
+| `BALANCE_CACHE_TTL`         | `900`                                | Seconds to cache a wallet's balance       |
+| `AGENT_SCHEDULER_ENABLED`   | `true`                               | Run autonomous dedicated-agent missions   |
+| `AGENT_SCHEDULER_INTERVAL_SEC` | `300`                             | How often the scheduler checks for due agents |
+| `STAKING_RELEASE_LABEL`     | `Release soon`                       | Label shown on the staking page           |
+
+Tiers gate: **Radar** premium depth + AI breakdown (`holder`+), and the
+**Dedicated Agent** strategy/autonomous missions (`pro`). Prediction staking is
+Phase 3 — the UI ships a "coming soon" page (`/staking`); see `TOKEN.md`.
+
 ## Useful endpoints
 
 | Endpoint                        | Auth | Notes                       |

@@ -226,6 +226,55 @@ CREATE INDEX idx_signals_created_at ON signals(created_at DESC);
 CREATE INDEX idx_signals_generation_id ON signals(generation_id);
 
 -- ══════════════════════════════════════════════════════════
+-- WALLETS (Sign-In With Solana — hold-to-access $PLSX tiers)
+-- ══════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS wallets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    chain VARCHAR(20) NOT NULL DEFAULT 'solana',
+    address VARCHAR(64) NOT NULL UNIQUE,    -- base58 pubkey
+    verified_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets(user_id);
+CREATE INDEX IF NOT EXISTS idx_wallets_address ON wallets(address);
+
+-- ══════════════════════════════════════════════════════════
+-- DEDICATED AGENT CONFIG (per-user, pro tier)
+-- ══════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS agent_configs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    strategy_prompt TEXT NOT NULL DEFAULT '',
+    watch_symbols JSONB DEFAULT '[]'::jsonb,
+    interval_minutes INTEGER NOT NULL DEFAULT 360,
+    is_active BOOLEAN DEFAULT false,
+    last_run_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_configs_active ON agent_configs(is_active) WHERE is_active = true;
+
+CREATE TRIGGER update_agent_configs_updated_at BEFORE UPDATE ON agent_configs
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ══════════════════════════════════════════════════════════
+-- AGENT RUNS (autonomous / manual mission history)
+-- ══════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS agent_runs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task TEXT NOT NULL,
+    result TEXT,
+    trigger VARCHAR(20) NOT NULL DEFAULT 'auto',  -- 'auto' | 'manual'
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_runs_user_id ON agent_runs(user_id, created_at DESC);
+
+-- ══════════════════════════════════════════════════════════
 -- INITIAL DATA
 -- ══════════════════════════════════════════════════════════
 -- (no seed users in production — register via the UI)

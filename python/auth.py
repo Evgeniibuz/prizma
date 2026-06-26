@@ -18,7 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from database import get_db
-from models import User
+from models import User, Wallet
+from services import token_balance
 
 logger = logging.getLogger(__name__)
 
@@ -124,3 +125,46 @@ async def get_optional_user(
         return await get_current_user(credentials, db)
     except HTTPException:
         return None
+
+
+# ── Token-gating (hold-to-access) ──────────────────────────────────────────
+async def user_wallet_address(db: AsyncSession, user: User) -> Optional[str]:
+    """Most recently linked, verified wallet address for a user (or None)."""
+    result = await db.execute(
+        select(Wallet)
+        .where(Wallet.user_id == user.id, Wallet.verified_at.isnot(None))
+        .order_by(Wallet.created_at.desc())
+    )
+    wallet = result.scalars().first()
+    return wallet.address if wallet else None
+
+
+async def get_current_tier(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> str:
+    """Resolve the caller's hold-to-access tier ('free' | 'holder' | 'pro')."""
+    address = await user_wallet_address(db, current_user)
+    return await token_balance.get_tier(address)
+
+
+def require_tier(min_tier: str):
+    """Dependency factory: 403 unless the caller holds at least `min_tier`."""
+
+    async def _dep(
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> User:
+        address = await user_wallet_address(db, current_user)
+        tier = await token_balance.get_tier(address)
+        if not token_balance.meets(tier, min_tier):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"This feature requires the '{min_tier}' tier. "
+                    f"Link a wallet holding more $PLSX to unlock."
+                ),
+            )
+        return current_user
+
+    return _dep

@@ -12,11 +12,14 @@ import logging
 import os
 import re
 import uuid
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, field_validator
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 try:
     from openai import AsyncOpenAI
@@ -24,6 +27,9 @@ except ImportError:  # openai not installed
     AsyncOpenAI = None  # type: ignore
 
 import signals_cache
+from auth import get_current_user, require_tier
+from database import get_db
+from models import AgentConfig, AgentRun, User
 
 router = APIRouter(prefix="/api/agent", tags=["agent"])
 logger = logging.getLogger(__name__)
@@ -504,3 +510,180 @@ async def get_signals_stats():
     except Exception as exc:
         logger.exception("get_signals_stats error")
         return {"error": str(exc)}
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Dedicated Agent (pro tier) — personal strategy + autonomous missions
+# ════════════════════════════════════════════════════════════════════════════
+
+DEDICATED_SYSTEM_PROMPT = """You are the user's PRIVATE PULSΞ intelligence agent, tuned to their personal trading strategy. Run an autonomous mission: scan the watched assets through the lens of the strategy below and report a current, data-driven read — not a training-data guess.
+
+Output:
+- READ: one-line current take per watched asset
+- ALIGNMENT: how today's market fits / breaks the user's strategy
+- ACTIONS: concrete, strategy-consistent next steps (with levels if relevant)
+- RISK: the #1 thing that would invalidate the thesis right now
+
+Be sharp and specific. Use the real numbers provided. English only."""
+
+
+async def execute_strategy(strategy_prompt: str, symbols: list[str]) -> str:
+    """Run one autonomous mission for a dedicated agent. Reusable by the scheduler."""
+    if not deepseek_client:
+        raise RuntimeError("AI agent not configured")
+
+    syms = [s.upper() for s in (symbols or []) if s][:12]
+    watch = ", ".join(f"${s}" for s in syms) if syms else "the overall market"
+    task = (
+        f"STRATEGY:\n{strategy_prompt.strip() or 'General momentum + sentiment read.'}\n\n"
+        f"WATCHED ASSETS: {watch}\n\n"
+        "Produce the autonomous mission report now."
+    )
+    task += await _fetch_fear_greed()
+    # Enrich with live data for the first watched symbol (anchors prices to now).
+    if syms:
+        task += await _fetch_token_context(f"${syms[0]}")
+
+    response = await deepseek_client.chat.completions.create(
+        model=DEEPSEEK_MODEL,
+        messages=[
+            {"role": "system", "content": DEDICATED_SYSTEM_PROMPT},
+            {"role": "user", "content": task},
+        ],
+        max_tokens=2048,
+        temperature=0.6,
+    )
+    return response.choices[0].message.content or ""
+
+
+class AgentConfigBody(BaseModel):
+    strategy_prompt: str = ""
+    watch_symbols: list[str] = []
+    interval_minutes: int = 360
+    is_active: bool = False
+
+    @field_validator("strategy_prompt")
+    @classmethod
+    def _cap_prompt(cls, v: str) -> str:
+        if len(v) > 4000:
+            raise ValueError("Strategy prompt too long (max 4000 chars)")
+        return v
+
+    @field_validator("watch_symbols")
+    @classmethod
+    def _clean_symbols(cls, v: list[str]) -> list[str]:
+        out = [s.strip().upper().lstrip("$") for s in v if s and s.strip()]
+        return out[:12]
+
+    @field_validator("interval_minutes")
+    @classmethod
+    def _clamp_interval(cls, v: int) -> int:
+        return max(30, min(int(v), 1440))
+
+
+def _config_dto(cfg: AgentConfig) -> dict:
+    return {
+        "strategy_prompt": cfg.strategy_prompt,
+        "watch_symbols": cfg.watch_symbols or [],
+        "interval_minutes": cfg.interval_minutes,
+        "is_active": cfg.is_active,
+        "last_run_at": cfg.last_run_at.isoformat() if cfg.last_run_at else None,
+    }
+
+
+@router.get("/config")
+async def get_agent_config(
+    current_user: User = Depends(require_tier("pro")),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(AgentConfig).where(AgentConfig.user_id == current_user.id)
+    )
+    cfg = result.scalar_one_or_none()
+    if cfg is None:
+        return {"configured": False, "config": None}
+    return {"configured": True, "config": _config_dto(cfg)}
+
+
+@router.post("/config")
+async def save_agent_config(
+    body: AgentConfigBody,
+    current_user: User = Depends(require_tier("pro")),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(AgentConfig).where(AgentConfig.user_id == current_user.id)
+    )
+    cfg = result.scalar_one_or_none()
+    if cfg is None:
+        cfg = AgentConfig(user_id=current_user.id)
+        db.add(cfg)
+    cfg.strategy_prompt = body.strategy_prompt
+    cfg.watch_symbols = body.watch_symbols
+    cfg.interval_minutes = body.interval_minutes
+    cfg.is_active = body.is_active
+    await db.commit()
+    await db.refresh(cfg)
+    return {"configured": True, "config": _config_dto(cfg)}
+
+
+@router.post("/run")
+async def run_agent_now(
+    current_user: User = Depends(require_tier("pro")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Manually trigger the dedicated agent (in addition to the schedule)."""
+    result = await db.execute(
+        select(AgentConfig).where(AgentConfig.user_id == current_user.id)
+    )
+    cfg = result.scalar_one_or_none()
+    if cfg is None:
+        raise HTTPException(status_code=400, detail="Configure your agent first")
+    if not deepseek_client:
+        raise HTTPException(status_code=503, detail="AI agent not configured")
+
+    try:
+        report = await execute_strategy(cfg.strategy_prompt, cfg.watch_symbols or [])
+    except Exception as exc:
+        logger.exception("Manual agent run failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    run = AgentRun(
+        user_id=current_user.id,
+        task=f"Manual mission · {', '.join(cfg.watch_symbols or []) or 'market'}",
+        result=report,
+        trigger="manual",
+    )
+    db.add(run)
+    cfg.last_run_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(run)
+    return {"id": str(run.id), "result": report, "created_at": run.created_at.isoformat()}
+
+
+@router.get("/runs")
+async def list_agent_runs(
+    limit: int = 20,
+    current_user: User = Depends(require_tier("pro")),
+    db: AsyncSession = Depends(get_db),
+):
+    limit = max(1, min(limit, 100))
+    result = await db.execute(
+        select(AgentRun)
+        .where(AgentRun.user_id == current_user.id)
+        .order_by(AgentRun.created_at.desc())
+        .limit(limit)
+    )
+    runs = result.scalars().all()
+    return {
+        "runs": [
+            {
+                "id": str(r.id),
+                "task": r.task,
+                "result": r.result,
+                "trigger": r.trigger,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in runs
+        ]
+    }

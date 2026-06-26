@@ -1,5 +1,5 @@
 """
-$PULSE token balance + hold-to-access tier resolution (Solana).
+$PLSX token balance + hold-to-access tier resolution (Solana).
 
 The token is not minted yet, so this module runs in three modes:
 
@@ -74,7 +74,7 @@ def tier_for_balance(balance: float) -> str:
 
 
 async def _rpc_token_balance(address: str) -> float:
-    """Sum the $PULSE balance across all token accounts owned by `address`."""
+    """Sum the $PLSX balance across all token accounts owned by `address`."""
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -105,7 +105,7 @@ async def _rpc_token_balance(address: str) -> float:
 
 
 async def get_token_balance(address: Optional[str]) -> float:
-    """Cached $PULSE balance for a wallet.
+    """Cached $PLSX balance for a wallet.
 
     Returns a large mock balance when gating is inactive so the whole product
     is usable before the token exists.

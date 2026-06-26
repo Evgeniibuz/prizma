@@ -13,6 +13,10 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.1
 
+# Wallet auth (Sign-In With Solana — ed25519 signature verification)
+PyNaCl==1.5.0
+base58==2.1.1
+
 # HTTP / config
 httpx==0.28.1
 python-dotenv==1.0.1

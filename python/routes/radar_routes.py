@@ -28,8 +28,9 @@ try:
 except Exception:
     redis = None  # type: ignore
 
-from auth import get_current_user
+from auth import get_current_user, get_current_tier
 from models import User
+from services import token_balance
 
 router = APIRouter(prefix="/api/radar", tags=["radar"])
 logger = logging.getLogger(__name__)
@@ -197,19 +198,31 @@ async def _fetch_top_coins(limit: int) -> list[dict[str, Any]]:
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────
+# Free tier sees a capped radar feed; holders+ get the full depth.
+FREE_TIER_SIGNAL_LIMIT = 25
+
+
 @router.get("/signals")
 async def radar_signals(
     request: Request,
     limit: int = 80,
     current_user: User = Depends(get_current_user),
+    tier: str = Depends(get_current_tier),
 ):
     if limit < 1 or limit > 120:
         raise HTTPException(status_code=400, detail="limit must be 1..120")
     await _rate_limit(request, current_user, scope="radar_signals", limit=30, window_sec=60)
 
+    # Hold-to-access: free tier is capped to a teaser slice of the feed.
+    capped = tier == "free" and limit > FREE_TIER_SIGNAL_LIMIT
+    if capped:
+        limit = FREE_TIER_SIGNAL_LIMIT
+
     ts = time.time()
     if _cache["data"] is not None and (ts - float(_cache["ts"])) < 20:
-        return _cache["data"]
+        cached = _cache["data"]
+        sliced = cached["signals"][:limit]
+        return {"ts": cached["ts"], "signals": sliced, "tier": tier, "capped": capped}
 
     coins = await _fetch_top_coins(limit=limit)
     coins = [c for c in coins if not _is_stable(c)]
@@ -260,7 +273,7 @@ async def radar_signals(
     payload = {"ts": _now_iso(), "signals": out}
     _cache["ts"] = ts
     _cache["data"] = payload
-    return payload
+    return {"ts": payload["ts"], "signals": out[:limit], "tier": tier, "capped": capped}
 
 
 @router.get("/breakdown/{symbol}")
@@ -269,12 +282,19 @@ async def radar_breakdown(
     symbol: str,
     include_ai: int = 0,
     current_user: User = Depends(get_current_user),
+    tier: str = Depends(get_current_tier),
 ):
     sym = _safe_symbol(symbol)
     if not sym:
         raise HTTPException(status_code=400, detail="symbol required")
     if len(sym) > 10 or not sym.replace("$", "").isalnum():
         raise HTTPException(status_code=400, detail="invalid symbol")
+
+    # Hold-to-access: the AI summary is a holder+ perk. Free users still get
+    # the raw breakdown, just with the AI summary locked (soft gate).
+    ai_locked = bool(include_ai) and not token_balance.meets(tier, "holder")
+    if ai_locked:
+        include_ai = 0
 
     await _rate_limit(request, current_user, scope="radar_breakdown", limit=20, window_sec=60)
     if include_ai:
@@ -333,7 +353,7 @@ async def radar_breakdown(
             logger.debug("Radar AI summary failed: %s", exc)
             summary = None
 
-    payload = {"breakdown": breakdown, "summary": summary}
+    payload = {"breakdown": breakdown, "summary": summary, "tier": tier, "ai_locked": ai_locked}
     _breakdown_cache["ts"][ck] = now
     _breakdown_cache["data"][ck] = payload
     return payload

@@ -131,6 +131,49 @@ class CashtagCache(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class Wallet(Base):
+    """A Solana wallet linked to a user (Sign-In With Solana).
+
+    Hold-to-access tiers are resolved from the on-chain $PLSX balance of the
+    verified wallet — see services/token_balance.py.
+    """
+    __tablename__ = "wallets"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    chain = Column(String(20), nullable=False, default='solana')
+    address = Column(String(64), nullable=False, unique=True, index=True)  # base58 pubkey
+    verified_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AgentConfig(Base):
+    """Per-user dedicated agent — strategy prompt + autonomous schedule (pro tier)."""
+    __tablename__ = "agent_configs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
+    strategy_prompt = Column(Text, nullable=False, default='')
+    watch_symbols = Column(JSON, default=[])
+    interval_minutes = Column(Integer, nullable=False, default=360)
+    is_active = Column(Boolean, default=False, index=True)
+    last_run_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class AgentRun(Base):
+    """A single autonomous (or manual) mission executed by a user's agent."""
+    __tablename__ = "agent_runs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    task = Column(Text, nullable=False)
+    result = Column(Text)
+    trigger = Column(String(20), nullable=False, default='auto')  # 'auto' | 'manual'
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
 class Signal(Base):
     """AI-generated trading signal (moved from SQLite to Postgres)."""
     __tablename__ = "signals"

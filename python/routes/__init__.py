@@ -13,6 +13,8 @@ from .radar_routes import router as radar_router
 from .logs_routes import router as logs_router
 from .dexscreener_routes import router as dex_router
 from .blockchair_routes import router as chain_whale_router
+from .wallet_routes import router as wallet_router
+from .predictions_routes import router as predictions_router
 
 __all__ = [
     "market_router",
@@ -22,4 +24,6 @@ __all__ = [
     "logs_router",
     "dex_router",
     "chain_whale_router",
+    "wallet_router",
+    "predictions_router",
 ]
