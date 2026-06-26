@@ -69,10 +69,18 @@ const API = {
       throw { status: 401, message: 'Session expired' };
     }
 
-    // Non-JSON responses (e.g. 204) shouldn't blow up
+    // Non-JSON responses (e.g. 204, or a 500 "Internal Server Error" page)
+    // must not blow up the caller with a JSON.parse error.
     const text = await r.text();
-    const data = text ? JSON.parse(text) : null;
-    if (!r.ok) throw { status: r.status, ...(data || {}) };
+    let data = null;
+    if (text) {
+      try { data = JSON.parse(text); }
+      catch { data = { detail: text.slice(0, 300) }; }
+    }
+    if (!r.ok) {
+      const msg = (data && (data.detail || data.message)) || `Request failed (${r.status})`;
+      throw { status: r.status, message: msg, ...(data || {}) };
+    }
     return data;
   },
 

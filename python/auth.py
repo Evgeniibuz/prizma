@@ -129,14 +129,26 @@ async def get_optional_user(
 
 # ── Token-gating (hold-to-access) ──────────────────────────────────────────
 async def user_wallet_address(db: AsyncSession, user: User) -> Optional[str]:
-    """Most recently linked, verified wallet address for a user (or None)."""
-    result = await db.execute(
-        select(Wallet)
-        .where(Wallet.user_id == user.id, Wallet.verified_at.isnot(None))
-        .order_by(Wallet.created_at.desc())
-    )
-    wallet = result.scalars().first()
-    return wallet.address if wallet else None
+    """Most recently linked, verified wallet address for a user (or None).
+
+    Degrades gracefully (returns None) if the wallets table doesn't exist yet,
+    so tier resolution never 500s a request.
+    """
+    try:
+        result = await db.execute(
+            select(Wallet)
+            .where(Wallet.user_id == user.id, Wallet.verified_at.isnot(None))
+            .order_by(Wallet.created_at.desc())
+        )
+        wallet = result.scalars().first()
+        return wallet.address if wallet else None
+    except Exception:
+        try:
+            await db.rollback()
+        except Exception:
+            pass
+        logger.warning("wallet lookup failed (table missing?) — defaulting to no wallet")
+        return None
 
 
 async def get_current_tier(

@@ -124,28 +124,39 @@ async def verify_wallet(
     _nonces.pop(key, None)
 
     # Upsert the wallet. An address may only belong to one account.
-    result = await db.execute(select(Wallet).where(Wallet.address == body.address))
-    wallet = result.scalar_one_or_none()
-    now = datetime.now(timezone.utc)
+    try:
+        result = await db.execute(select(Wallet).where(Wallet.address == body.address))
+        wallet = result.scalar_one_or_none()
+        now = datetime.now(timezone.utc)
 
-    if wallet and wallet.user_id != current_user.id:
+        if wallet and wallet.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This wallet is already linked to another account",
+            )
+
+        if wallet is None:
+            wallet = Wallet(
+                user_id=current_user.id,
+                chain="solana",
+                address=body.address,
+                verified_at=now,
+            )
+            db.add(wallet)
+        else:
+            wallet.verified_at = now
+
+        await db.commit()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        await db.rollback()
+        logger.exception("Wallet upsert failed")
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This wallet is already linked to another account",
+            status_code=503,
+            detail="Could not save wallet — the wallets table may be missing. "
+                   "Redeploy the backend so startup creates it.",
         )
-
-    if wallet is None:
-        wallet = Wallet(
-            user_id=current_user.id,
-            chain="solana",
-            address=body.address,
-            verified_at=now,
-        )
-        db.add(wallet)
-    else:
-        wallet.verified_at = now
-
-    await db.commit()
 
     payload = await _tier_payload(body.address)
     return {"linked": True, "address": body.address, **payload}
