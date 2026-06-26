@@ -215,6 +215,25 @@ def _split_sql_statements(sql: str) -> list[str]:
         out.append(tail)
     return out
 
+async def _ensure_runtime_tables() -> None:
+    """Create tables added after first deploy, even when the DB is not empty."""
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS wallets (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                chain VARCHAR(20) NOT NULL DEFAULT 'solana',
+                address VARCHAR(64) NOT NULL UNIQUE,
+                verified_at TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        await conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets(user_id)"
+        ))
+        await conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_wallets_address ON wallets(address)"
+        ))
 
 async def init_db() -> None:
     """
@@ -231,6 +250,7 @@ async def init_db() -> None:
 
     try:
         await _bootstrap_schema_if_empty()
+        await _ensure_runtime_tables()
     except Exception as exc:
         logger.error("Schema bootstrap failed: %s", exc)
         raise
